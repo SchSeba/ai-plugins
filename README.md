@@ -15,6 +15,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [review-engine](#review-engine)
   - [pr-comment-resolver](#pr-comment-resolver)
   - [jira-cli](#jira-cli)
+  - [write-a-skill](#write-a-skill)
 - [Project Structure](#project-structure)
 - [MCP Servers](#mcp-servers)
 - [Contributing](#contributing)
@@ -113,6 +114,7 @@ cp -r ai-plugins/commands/* ~/.cursor/commands/
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
+| [write-a-skill](#write-a-skill) | Create new agent skills with proper structure, conventions, and registration | `/write-a-skill` |
 
 ---
 
@@ -251,10 +253,31 @@ Query your Jira tasks and epics using the [jira-cli](https://github.com/ankitpok
 | `get_my_tasks` | `[PROJECT] [LIMIT]` | List open tasks assigned to you, ordered by last updated |
 | `get_my_epics` | `[VERSION] [PROJECT] [LIMIT]` | List your epics, optionally filtered by fix-version |
 
+---
+
+### write-a-skill
+
+Step-by-step workflow for creating a new skill in this repository. Guides you through requirements gathering, directory creation, writing the skill body with proper information hierarchy, crafting the description, creating the command file, registering in README.md, and running the review checklist.
+
+Integrates best practices from [mattpocock's writing-great-skills](https://github.com/mattpocock/skills/blob/main/skills/productivity/writing-great-skills/SKILL.md) — including completion criteria, leading words, progressive disclosure, and failure mode awareness.
+
+**Usage:**
+
+```
+/write-a-skill Create a skill for database migration management
+```
+
+```
+/write-a-skill
+```
+
+Includes a [`GLOSSARY.md`](skills/write-a-skill/GLOSSARY.md) with domain vocabulary for skill authoring (predictability, leading words, information hierarchy, failure modes, etc.).
+
 ## Project Structure
 
 ```
 ai-plugins/
+├── AGENTS.md                 # Repository conventions and rules for AI agents
 ├── README.md                 # This file
 ├── .claude-plugin/           # Claude Code plugin manifest
 │   ├── marketplace.json
@@ -267,7 +290,8 @@ ai-plugins/
 │   ├── develop-feature.md
 │   ├── jira-cli.md
 │   ├── pr-comment-resolver.md
-│   └── review-engine.md
+│   ├── review-engine.md
+│   └── write-a-skill.md
 └── skills/                   # Skill implementations
     ├── code-review/
     │   ├── SKILL.md
@@ -280,9 +304,12 @@ ai-plugins/
     │   └── scripts/
     ├── pr-comment-resolver/
     │   └── SKILL.md
-    └── review-engine/
+    ├── review-engine/
+    │   ├── SKILL.md
+    │   └── review-perspectives.md
+    └── write-a-skill/
         ├── SKILL.md
-        └── review-perspectives.md
+        └── GLOSSARY.md
 ```
 
 **How it works:**
@@ -319,9 +346,11 @@ The repository includes a pre-configured [GitHub MCP server](https://github.com/
 
 Skills are plain Markdown files — no executable code required. To add a new skill:
 
-1. Create `skills/<your-skill>/SKILL.md` with YAML frontmatter (`name`, `description`) and the skill workflow in Markdown
-2. Create a matching `commands/<your-skill>.md` that routes to your skill
-3. Follow the existing patterns — see any skill directory for reference
+1. Read and follow the [`write-a-skill`](skills/write-a-skill/SKILL.md) skill for the complete workflow
+2. Create `skills/<your-skill>/SKILL.md` with YAML frontmatter (`name`, `description`) and the skill workflow in Markdown
+3. Create a matching `commands/<your-skill>.md` that routes to your skill
+4. **Add the new skill and command to this README** — both the Skills table and the dedicated section, in alphabetical order
+5. Follow the existing patterns — see any skill directory for reference
 
 ## License
 
