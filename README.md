@@ -9,6 +9,9 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
 - [Installation](#installation)
   - [Claude Code](#claude-code)
   - [Cursor](#cursor)
+- [Updating](#updating)
+  - [Claude Code](#claude-code-1)
+  - [Cursor](#cursor-1)
 - [Available Skills](#available-skills)
   - [develop-feature](#develop-feature)
   - [code-review](#code-review)
@@ -107,11 +110,65 @@ cp -r ai-plugins/skills/* ~/.cursor/skills/
 cp -r ai-plugins/commands/* ~/.cursor/commands/
 ```
 
+## Updating
+
+After the plugin is installed, here's how to pull the latest skill updates for each installation method.
+
+### Claude Code
+
+**Option A — Plugin Marketplace**
+
+Run this slash command inside a Claude Code session:
+
+```
+/plugin update ai-plugins@ai-plugins
+```
+
+**Option B — Skills Directory**
+
+Pull the latest changes from the repository:
+
+```bash
+cd ~/.claude/skills/ai-plugins && git pull
+```
+
+**Option C — Plugin Directory**
+
+Pull the latest changes in the cloned directory:
+
+```bash
+cd ./ai-plugins && git pull
+```
+
+### Cursor
+
+**Option A — Remote Rule from GitHub**
+
+No action needed — Cursor automatically re-fetches the latest skills from GitHub on each session.
+
+**Option B — Copy skills to your project**
+
+Pull the latest changes and re-copy the files:
+
+```bash
+cd ai-plugins && git pull
+
+# Project-level:
+cp -r skills/* .cursor/skills/
+cp -r commands/* .cursor/commands/
+
+# Or user-level:
+cp -r skills/* ~/.cursor/skills/
+cp -r commands/* ~/.cursor/commands/
+```
+
+> **Note:** Updates take effect immediately on the next Claude Code or Cursor session — no restart required.
+
 ## Available Skills
 
 | Skill | Description | Command |
 |-------|-------------|---------|
-| [develop-feature](#develop-feature) | Plan → Code → Review workflow with iterative implementation | `/develop-feature` |
+| [develop-feature](#develop-feature) | Plan → Code → Review → Validate workflow with multi-subagent investigation and user approval | `/develop-feature` |
 | [code-review](#code-review) | Multi-perspective code review for PRs and local changes | `/code-review` |
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
@@ -122,18 +179,18 @@ cp -r ai-plugins/commands/* ~/.cursor/commands/
 
 ### develop-feature
 
-A three-phase development workflow: **Plan → Code → Review** with automated iteration until the review passes.
+A four-phase development workflow: **Plan → Code → Review → Validate** with multi-subagent investigation, mandatory user approval, and automated iteration until the review passes.
 
-The agent plans the implementation, writes production-grade code with tests, then reviews its own work. If the review finds issues, it loops back to coding and fixes them — up to 3 iterations.
+The planning phase spawns parallel specialist sub-agents to investigate the codebase, then presents a structured plan for user approval. After approval, the agent writes production-grade code with tests, reviews its own work with multi-perspective review, and runs a final validation phase. If the review finds issues, it loops back to coding — up to 3 iterations.
 
 ```
-+----------+     +----------+     +----------+
-|   PLAN   | --> |   CODE   | --> |  REVIEW  |
-+----------+     +----------+     +----------+
-                      ^                |
-                      |    changes     |
-                      |   requested    |
-                      +----------------+
++----------+     +----------+     +----------+     +----------+
+|   PLAN   | --> |   CODE   | --> |  REVIEW  | --> | VALIDATE |
++----------+     +----------+     +----------+     +----------+
+     |                ^                |
+     |                |    changes     |
+  user must           |   requested    |
+  approve             +----------------+
 ```
 
 **Usage:**
