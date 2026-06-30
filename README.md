@@ -168,7 +168,7 @@ cp -r commands/* ~/.cursor/commands/
 
 | Skill | Description | Command |
 |-------|-------------|---------|
-| [develop-feature](#develop-feature) | Plan → Code → Review workflow with iterative implementation | `/develop-feature` |
+| [develop-feature](#develop-feature) | Plan → Code → Review → Validate workflow with multi-subagent investigation and user approval | `/develop-feature` |
 | [code-review](#code-review) | Multi-perspective code review for PRs and local changes | `/code-review` |
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
@@ -179,18 +179,18 @@ cp -r commands/* ~/.cursor/commands/
 
 ### develop-feature
 
-A three-phase development workflow: **Plan → Code → Review** with automated iteration until the review passes.
+A four-phase development workflow: **Plan → Code → Review → Validate** with multi-subagent investigation, mandatory user approval, and automated iteration until the review passes.
 
-The agent plans the implementation, writes production-grade code with tests, then reviews its own work. If the review finds issues, it loops back to coding and fixes them — up to 3 iterations.
+The planning phase spawns parallel specialist sub-agents to investigate the codebase, then presents a structured plan for user approval. After approval, the agent writes production-grade code with tests, reviews its own work with multi-perspective review, and runs a final validation phase. If the review finds issues, it loops back to coding — up to 3 iterations.
 
 ```
-+----------+     +----------+     +----------+
-|   PLAN   | --> |   CODE   | --> |  REVIEW  |
-+----------+     +----------+     +----------+
-                      ^                |
-                      |    changes     |
-                      |   requested    |
-                      +----------------+
++----------+     +----------+     +----------+     +----------+
+|   PLAN   | --> |   CODE   | --> |  REVIEW  | --> | VALIDATE |
++----------+     +----------+     +----------+     +----------+
+     |                ^                |
+     |                |    changes     |
+  user must           |   requested    |
+  approve             +----------------+
 ```
 
 **Usage:**
