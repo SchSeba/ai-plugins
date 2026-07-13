@@ -15,6 +15,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [review-engine](#review-engine)
   - [pr-comment-resolver](#pr-comment-resolver)
   - [jira-cli](#jira-cli)
+  - [kubernetes-pre-push](#kubernetes-pre-push)
   - [write-a-skill](#write-a-skill)
 - [Project Structure](#project-structure)
 - [MCP Servers](#mcp-servers)
@@ -116,6 +117,7 @@ cp -r ai-plugins/commands/* ~/.cursor/commands/
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
+| [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
 | [write-a-skill](#write-a-skill) | Create new agent skills with proper structure, conventions, and registration | `/write-a-skill` |
 
 ---
@@ -257,6 +259,31 @@ Query your Jira tasks and epics using the [jira-cli](https://github.com/ankitpok
 
 ---
 
+### kubernetes-pre-push
+
+A structured pre-push verification workflow for Kubernetes repository contributions. Analyzes the changed files in your working tree, determines which verification steps apply (lint, codegen, OpenAPI, API descriptions, integration tests, client-go API diff), and executes them in the correct dependency order — regenerating code before verifying, running focused tests before broad integration suites.
+
+**Usage:**
+
+```
+/kubernetes-pre-push
+```
+
+```
+/kubernetes-pre-push ./pkg/apis/resource/... ./pkg/scheduler/framework/plugins/dynamicresources/...
+```
+
+**Workflow:**
+
+1. Discovers the Kubernetes repo root and base branch
+2. Analyzes changed files and classifies them (API types, generated code, staging modules, etc.)
+3. Runs always-required checks: focused Go tests, lint, codegen verification, OpenAPI verification
+4. Regenerates code if verifiers fail or API types changed (codegen, OpenAPI snapshots, API compatibility data)
+5. Runs conditional checks based on what changed: API descriptions, API compatibility, client-go API diff, integration tests
+6. Presents a pass/fail summary with a clear push verdict
+
+---
+
 ### write-a-skill
 
 Step-by-step workflow for creating a new skill in this repository. Guides you through requirements gathering, directory creation, writing the skill body with proper information hierarchy, crafting the description, creating the command file, registering in README.md, and running the review checklist.
@@ -291,6 +318,7 @@ ai-plugins/
 │   ├── code-review.md
 │   ├── develop-feature.md
 │   ├── jira-cli.md
+│   ├── kubernetes-pre-push.md
 │   ├── pr-comment-resolver.md
 │   ├── review-engine.md
 │   └── write-a-skill.md
@@ -304,6 +332,8 @@ ai-plugins/
     ├── jira-cli/
     │   ├── SKILL.md
     │   └── scripts/
+    ├── kubernetes-pre-push/
+    │   └── SKILL.md
     ├── pr-comment-resolver/
     │   └── SKILL.md
     ├── review-engine/
