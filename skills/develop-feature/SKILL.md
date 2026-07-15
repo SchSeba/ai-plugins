@@ -68,6 +68,21 @@ Before any analysis, read the project's best-practices and contribution guidelin
 3. **Clarify ambiguities.**
    - List any requirements that are unclear or could be interpreted multiple ways.
    - For each, state your assumption and flag it as needing confirmation.
+   - **Feature Completeness Gate — Do NOT skip.** After listing ambiguities, evaluate the request against these criteria:
+     - [ ] **Clear problem statement** — The "what" and "why" are unambiguous.
+     - [ ] **Acceptance criteria** — There are concrete, testable conditions for "done".
+     - [ ] **Entry point identified** — The trigger is known (which API, endpoint, CLI command, controller, or component initiates the flow).
+     - [ ] **Exit / success condition** — What the end-to-end result looks like when the feature works correctly.
+     - [ ] **Affected components named** — All layers, services, or modules that will be touched are identified.
+     - [ ] **No critical open questions** — There are no ambiguities that would force a major re-plan mid-coding.
+   - **If ALL criteria are met:** The description is complete — proceed to Step 1.2 (Codebase Scan).
+   - **If ANY criterion is NOT met:** The description has gaps. Invoke the `grill-me` skill to close them:
+     1. **Read and follow** the grill-me skill at [../grill-me/SKILL.md](../grill-me/SKILL.md).
+     2. **Focus the interview** on the missing criteria identified above. Tell the user which checklist items failed and why.
+     3. **Use the grill-me workflow** (Steps 1–6) to conduct a structured interview with the user, one question at a time, until every gap is resolved.
+     4. **After the grill session completes**, incorporate the decisions and answers into the feature description and re-evaluate the completeness checklist. All criteria must pass before proceeding.
+
+   > **Rule:** Do not proceed to the Codebase Scan with known gaps in the feature description. An incomplete description leads to an incomplete plan, which leads to wasted coding iterations. It is faster to spend 5 minutes grilling than to re-plan after discovering a missing requirement mid-implementation.
 
 ### Step 1.2: Codebase Scan
 
