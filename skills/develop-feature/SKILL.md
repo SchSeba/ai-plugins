@@ -68,35 +68,23 @@ Before any analysis, read the project's best-practices and contribution guidelin
 3. **Clarify ambiguities.**
    - List any requirements that are unclear or could be interpreted multiple ways.
    - For each, state your assumption and flag it as needing confirmation.
+   - **Feature Completeness Gate — Do NOT skip.** After listing ambiguities, evaluate the request against these criteria:
+     - [ ] **Clear problem statement** — The "what" and "why" are unambiguous.
+     - [ ] **Acceptance criteria** — There are concrete, testable conditions for "done".
+     - [ ] **Entry point identified** — The trigger is known (which API, endpoint, CLI command, controller, or component initiates the flow).
+     - [ ] **Exit / success condition** — What the end-to-end result looks like when the feature works correctly.
+     - [ ] **Affected components named** — All layers, services, or modules that will be touched are identified.
+     - [ ] **No critical open questions** — There are no ambiguities that would force a major re-plan mid-coding.
+   - **If ALL criteria are met:** The description is complete — proceed to Step 1.2 (Codebase Scan).
+   - **If ANY criterion is NOT met:** The description has gaps. Invoke the `grill-me` skill to close them:
+     1. **Read and follow** the grill-me skill at [../grill-me/SKILL.md](../grill-me/SKILL.md).
+     2. **Focus the interview** on the missing criteria identified above. Tell the user which checklist items failed and why.
+     3. **Use the grill-me workflow** (Steps 1–6) to conduct a structured interview with the user, one question at a time, until every gap is resolved.
+     4. **After the grill session completes**, incorporate the decisions and answers into the feature description and re-evaluate the completeness checklist. All criteria must pass before proceeding.
 
-### Step 1.2: Feature Completeness Gate
+   > **Rule:** Do not proceed to the Codebase Scan with known gaps in the feature description. An incomplete description leads to an incomplete plan, which leads to wasted coding iterations. It is faster to spend 5 minutes grilling than to re-plan after discovering a missing requirement mid-implementation.
 
-After gathering context, assess whether the feature description is sufficiently defined end-to-end to produce a reliable plan. **Do NOT skip this step.**
-
-#### Completeness Checklist
-
-Evaluate the request against these criteria:
-
-- [ ] **Clear problem statement** — The "what" and "why" are unambiguous.
-- [ ] **Acceptance criteria** — There are concrete, testable conditions for "done".
-- [ ] **Entry point identified** — The trigger is known (which API, endpoint, CLI command, controller, or component initiates the flow).
-- [ ] **Exit / success condition** — What the end-to-end result looks like when the feature works correctly.
-- [ ] **Affected components named** — All layers, services, or modules that will be touched are identified.
-- [ ] **No critical open questions** — There are no ambiguities that would force a major re-plan mid-coding.
-
-#### Decision
-
-- **If ALL criteria are met:** The description is complete — proceed to Step 1.3 (Codebase Scan).
-- **If ANY criterion is NOT met:** The description has gaps that must be filled before planning can produce a reliable result. Invoke the `grill-me` skill to close those gaps:
-
-  1. **Read and follow** the grill-me skill at [../grill-me/SKILL.md](../grill-me/SKILL.md).
-  2. **Focus the interview** on the missing criteria identified above. Tell the user which checklist items failed and why.
-  3. **Use the grill-me workflow** (Steps 1–6) to conduct a structured interview with the user, one question at a time, until every gap is resolved.
-  4. **After the grill session completes**, incorporate the decisions and answers into the feature description and re-evaluate the completeness checklist. All criteria must pass before proceeding.
-
-> **Rule:** Do not proceed to the Codebase Scan with known gaps in the feature description. An incomplete description leads to an incomplete plan, which leads to wasted coding iterations. It is faster to spend 5 minutes grilling than to re-plan after discovering a missing requirement mid-implementation.
-
-### Step 1.3: Codebase Scan
+### Step 1.2: Codebase Scan
 
 > **CodeGraph-first rule:** If the CodeGraph MCP server is configured and available, prefer `codegraph_explore` for all codebase exploration — it returns the relevant symbols' verbatim source, call paths, and blast radius in a single tool call, replacing slow grep/find/read loops. If CodeGraph is available but the project has no `.codegraph/` directory, run `codegraph init` in the project root first to build the initial graph. If CodeGraph is not available, **inform the user** and fall back to manual exploration below.
 
@@ -122,7 +110,7 @@ Evaluate the request against these criteria:
      - If the task modifies an API endpoint, trace from handler → service → repository.
    - Note cross-component dependencies that may require coordinated changes.
 
-### Step 1.4: Multi-Subagent Parallel Investigation (MANDATORY)
+### Step 1.3: Multi-Subagent Parallel Investigation (MANDATORY)
 
 Before designing the plan, you MUST spawn multiple specialized investigation sub-agents in parallel. Each agent investigates a specific dimension of the feature and reports back. This ensures the plan is grounded in the actual codebase conventions, not generic assumptions.
 
@@ -165,9 +153,9 @@ Investigate the project architecture and report:
 - **Security patterns**: Auth middleware, input validation, RBAC patterns in use.
 - **Where new code belongs**: Based on the feature request, recommend which packages/directories the new code should go in.
 
-**After all 4 agents complete**, aggregate their findings into an **Investigation Summary** at the top of the plan (Step 1.7). This summary ensures the plan uses the project's actual conventions, not defaults.
+**After all 4 agents complete**, aggregate their findings into an **Investigation Summary** at the top of the plan (Step 1.6). This summary ensures the plan uses the project's actual conventions, not defaults.
 
-### Step 1.5: Language-Specific Analysis
+### Step 1.4: Language-Specific Analysis
 
 Based on the languages detected, perform the appropriate deep analysis.
 
@@ -206,7 +194,7 @@ Based on the languages detected, perform the appropriate deep analysis.
 - **Unsafe code**: Note any `unsafe` blocks and their safety invariants.
 - **Observability**: Check for `tracing` crate, `metrics` crate, structured logging setup.
 
-### Step 1.6: Design the Implementation Plan
+### Step 1.5: Design the Implementation Plan
 
 Produce a structured plan with the following sections.
 
@@ -310,7 +298,7 @@ Checkable criteria derived from the request:
 - Security considerations
 - Unclear requirements (with assumptions stated)
 
-### Step 1.7: Save and Present the Plan
+### Step 1.6: Save and Present the Plan
 
 Write the complete plan to:
 
@@ -324,7 +312,7 @@ docs/plans/{feature-name}-plan.md
 - What will be implemented and why
 - Key architecture decisions
 - Languages, frameworks, and patterns involved
-- Investigation summary: aggregated findings from the 4 sub-agents (Step 1.4)
+- Investigation summary: aggregated findings from the 4 sub-agents (Step 1.3)
 - Acceptance criteria
 
 **Part 2: Deep Dive — Per-File Changes**
@@ -338,7 +326,7 @@ docs/plans/{feature-name}-plan.md
 
 **Output:** Present the full plan (Part 1 + Part 2) to the user.
 
-### Step 1.8: User Approval Gate (MANDATORY — HARD STOP)
+### Step 1.7: User Approval Gate (MANDATORY — HARD STOP)
 
 > **⛔ FULL STOP.** You MUST NOT proceed to the coding phase without explicit user approval. This is a non-negotiable gate.
 
