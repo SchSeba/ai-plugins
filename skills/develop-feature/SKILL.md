@@ -1,11 +1,11 @@
 ---
 name: develop-feature
-description: Execute a three-phase Plan -> Code -> Review workflow with iterative implementation until the review passes. Enforces production-readiness with extensive logging, comprehensive testing (unit + E2E), multi-agent code review, and build validation. Metrics and tracing are added when the project already has that infrastructure. Use when the user asks to build a feature, fix a bug, or make a structured change and wants planning, production-grade coding, and review in one workflow.
+description: Execute a four-phase Plan -> Code -> Review -> Validate workflow with iterative implementation until the review passes. The planning phase uses multi-subagent parallel investigation and requires explicit user approval before coding begins. Enforces production-readiness with extensive logging, comprehensive testing (unit + E2E), multi-agent code review, and build validation. Metrics and tracing are added when the project already has that infrastructure. Use when the user asks to build a feature, fix a bug, or make a structured change and wants planning, production-grade coding, and review in one workflow.
 ---
 
 # Develop Feature
 
-A three-phase development workflow: **Plan → Code → Review** with automated iteration until the review passes.
+A four-phase development workflow: **Plan → Code → Review → Validate** with automated iteration until the review passes.
 
 Every feature produced by this workflow MUST be **production-ready**: structured logging, comprehensive unit and E2E tests, and a clean build. Metrics and distributed tracing should be added when the project already has that infrastructure in place. No shortcuts.
 
@@ -23,16 +23,16 @@ Every feature produced by this workflow MUST be **production-ready**: structured
 
 ## Workflow Overview
 
-Execute these three phases in order. If the review phase requests changes, loop back to the coding phase with the review feedback, then re-review. Repeat until the review passes.
+Execute these four phases in order. The planning phase requires explicit user approval before coding begins. If the review phase requests changes, loop back to the coding phase with the review feedback, then re-review. After approval, a final validation phase re-runs the full test suite.
 
 ```text
-+----------+     +----------+     +----------+
-|   PLAN   | --> |   CODE   | --> |  REVIEW  |
-+----------+     +----------+     +----------+
-                      ^                |
-                      |    changes     |
-                      |   requested    |
-                      +----------------+
++----------+     +----------+     +----------+     +----------+
+|   PLAN   | --> |   CODE   | --> |  REVIEW  | --> | VALIDATE |
++----------+     +----------+     +----------+     +----------+
+     |                ^                |
+     |                |    changes     |
+  user must           |   requested    |
+  approve             +----------------+
 ```
 
 ---
@@ -95,7 +95,52 @@ Before any analysis, read the project's best-practices and contribution guidelin
      - If the task modifies an API endpoint, trace from handler → service → repository.
    - Note cross-component dependencies that may require coordinated changes.
 
-### Step 1.3: Language-Specific Analysis
+### Step 1.3: Multi-Subagent Parallel Investigation (MANDATORY)
+
+Before designing the plan, you MUST spawn multiple specialized investigation sub-agents in parallel. Each agent investigates a specific dimension of the feature and reports back. This ensures the plan is grounded in the actual codebase conventions, not generic assumptions.
+
+**Spawn these 4 sub-agents in parallel:**
+
+#### Agent A — Language Best Practices
+
+Investigate the detected language(s) and report:
+- **Error handling conventions**: How does this project wrap/propagate errors? Sentinel errors? Custom error types?
+- **Naming conventions**: Variable, function, file naming patterns. Acronym casing.
+- **Interface patterns**: How are interfaces defined and consumed? Where are mocks generated?
+- **Framework-specific idioms**: What framework patterns does the project follow? What would be idiomatic for the new feature?
+- **Code organization**: How are files structured within packages/modules?
+
+#### Agent B — Test Patterns
+
+Investigate the existing test infrastructure and report:
+- **Test framework**: Which testing libraries are used? (e.g., `testify`, `gomega`, `pytest`, `vitest`)
+- **Test organization**: Where do test files live? How are they named?
+- **Mock generation**: What mock library is used? How are mocks structured? Show example mock files.
+- **Test helpers**: What shared test utilities, fixtures, or builders exist?
+- **Coverage approach**: Is there a coverage threshold? What patterns do existing tests follow?
+- **Example test files**: List 2-3 representative test files that the new tests should mirror.
+
+#### Agent C — Observability Patterns
+
+Investigate the project's observability setup and report:
+- **Logging library**: Which logger is used? (e.g., `slog`, `zap`, `klog`, `structlog`, `winston`)
+- **Log levels in use**: What log levels appear in the codebase? Show example log calls.
+- **Structured fields**: What key-value field names are standard? (e.g., `resource`, `operation`, `duration_ms`)
+- **Metrics setup**: Is there a metrics library? What metric names and label conventions are used? If none, report "no metrics infrastructure."
+- **Tracing setup**: Is there a tracing library? What span naming conventions are used? If none, report "no tracing infrastructure."
+
+#### Agent D — Architecture & Security
+
+Investigate the project architecture and report:
+- **Dependency injection patterns**: How are dependencies passed? Constructor injection? Globals?
+- **Layer architecture**: How are layers separated? (handler → service → repository, etc.)
+- **Data flow**: How does data move through the system for similar features?
+- **Security patterns**: Auth middleware, input validation, RBAC patterns in use.
+- **Where new code belongs**: Based on the feature request, recommend which packages/directories the new code should go in.
+
+**After all 4 agents complete**, aggregate their findings into an **Investigation Summary** at the top of the plan (Step 1.6). This summary ensures the plan uses the project's actual conventions, not defaults.
+
+### Step 1.4: Language-Specific Analysis
 
 Based on the languages detected, perform the appropriate deep analysis.
 
@@ -134,7 +179,7 @@ Based on the languages detected, perform the appropriate deep analysis.
 - **Unsafe code**: Note any `unsafe` blocks and their safety invariants.
 - **Observability**: Check for `tracing` crate, `metrics` crate, structured logging setup.
 
-### Step 1.4: Design the Implementation Plan
+### Step 1.5: Design the Implementation Plan
 
 Produce a structured plan with the following sections.
 
@@ -238,7 +283,7 @@ Checkable criteria derived from the request:
 - Security considerations
 - Unclear requirements (with assumptions stated)
 
-### Step 1.5: Save the Plan
+### Step 1.6: Save and Present the Plan
 
 Write the complete plan to:
 
@@ -246,7 +291,42 @@ Write the complete plan to:
 docs/plans/{feature-name}-plan.md
 ```
 
-**Output:** Present the plan to the user before proceeding to the coding phase.
+**The plan MUST be structured in two parts:**
+
+**Part 1: High-Level Summary** (1–3 paragraphs)
+- What will be implemented and why
+- Key architecture decisions
+- Languages, frameworks, and patterns involved
+- Investigation summary: aggregated findings from the 4 sub-agents (Step 1.3)
+- Acceptance criteria
+
+**Part 2: Deep Dive — Per-File Changes**
+- For each file to create or modify, provide:
+  - Exact file path
+  - Action (Create / Modify / Delete)
+  - Detailed description of what changes (functions, types, imports, etc.)
+  - Dependencies on other files
+  - Logging, metrics, and tracing to add in this file
+  - Tests that will validate this file's changes
+
+**Output:** Present the full plan (Part 1 + Part 2) to the user.
+
+### Step 1.7: User Approval Gate (MANDATORY — HARD STOP)
+
+> **⛔ FULL STOP.** You MUST NOT proceed to the coding phase without explicit user approval. This is a non-negotiable gate.
+
+After presenting the plan:
+
+1. **Ask the user to review and approve the plan.** Say: _"Please review the plan above. You can approve it to proceed to coding, or provide feedback for revisions."_
+2. **Wait for the user's response.** Do NOT start writing implementation code.
+3. **If the user provides feedback:**
+   - Revise the plan based on the feedback.
+   - Re-present the updated plan.
+   - Wait for approval again.
+   - Repeat this loop until the user explicitly approves.
+4. **If the user approves:** Proceed to Phase 2 (Coding).
+
+> **Rule:** "Approval" means the user explicitly says to proceed (e.g., "looks good", "approved", "go ahead", "LGTM"). Silence or ambiguity is NOT approval — ask again.
 
 ---
 
@@ -314,6 +394,30 @@ For each logical change:
    - But do NOT over-abstract
 
 When TDD is impractical (wiring code, configuration, UI layout), write the code first but add tests immediately after.
+
+### Step 2.3.1: Pre-Coding Test Commitment (MANDATORY — Do This BEFORE Writing Implementation Code)
+
+> **STOP.** Before writing any implementation code, you must declare the test files you will create. This is a hard gate — skip it and the review will reject your work.
+
+For every new function or modified function in your plan, list the following **now** — before writing a single line of implementation:
+
+1. **Test file paths** — Exact file paths for every test file you will create or modify (e.g., `internal/service/user_service_test.go`, `web/src/utils/__tests__/taskUtils.test.ts`).
+2. **Test cases per function** — For each new public function, list at least:
+   - One happy-path test
+   - One error-path test
+   - One edge-case test (nil/empty/zero/boundary)
+3. **E2E / Integration test files** — If the feature touches 2+ layers, list the integration test file path and the end-to-end scenario it will cover.
+
+**Format your commitment as a checklist:**
+
+```text
+Test Files I Will Create:
+- [ ] path/to/unit_test_file — tests for FunctionA (happy, error, edge), FunctionB (happy, error)
+- [ ] path/to/integration_test_file — E2E: full request → service → repository flow
+- [ ] path/to/frontend_test_file — tests for ComponentX, utilityY
+```
+
+> **Rule:** You are NOT allowed to proceed to Step 2.4 until this checklist exists. You are NOT allowed to declare coding complete (Step 2.8+) until every item in this checklist is checked off. The review phase will verify this checklist against the actual test files you created.
 
 ### Step 2.4: Language-Specific Best Practices
 
@@ -545,9 +649,14 @@ Apply to ALL code regardless of language.
 - **Docstrings**: Add docstrings or equivalent function-level documentation to every new function.
 - **Comments**: Comments explain WHY, not WHAT. Only comment when the reason is non-obvious.
 
-### Step 2.7: Comprehensive Testing (MANDATORY)
+### Step 2.7: Comprehensive Testing (MANDATORY — HARD GATE)
 
-> **Untested code is incomplete code.** You MUST write both unit tests and E2E/integration tests for every new feature.
+> **⛔ STOP — TESTING IS NOT OPTIONAL.**
+> Untested code is incomplete code. You MUST write both unit tests and E2E/integration tests for every new feature.
+> **You are NOT allowed to proceed to Step 2.8 (Build Validation) until you have written ALL tests listed in your Step 2.3.1 commitment.**
+> If you skip this step, the review WILL reject your work and you will be sent back to write the tests anyway. Write them now.
+>
+> **Self-check before continuing:** Open your Step 2.3.1 test commitment checklist. For EACH test file listed: does the file exist? Does it contain the test cases you committed to? If any answer is "no", you are not done with this step.
 
 #### 2.7.1: Unit Tests
 
@@ -618,6 +727,27 @@ After writing tests:
 - Check that every error path is tested
 - Check that edge cases identified in the plan are covered
 
+### Step 2.7.4: Testing Gate — STOP AND VERIFY (MANDATORY)
+
+> **⛔ FULL STOP.** You may NOT proceed to build validation until you pass this gate.
+
+Go back to your Step 2.3.1 test commitment checklist and verify each item:
+
+1. **For every test file path you listed:** Does the file exist? Open it and confirm.
+2. **For every test case you committed to:** Does the test exist in the file? Is it implemented (not just a skeleton or `t.Skip()`)?
+3. **For every E2E/integration test you committed to:** Does it test the full flow across component boundaries?
+
+**Produce a test verification report** — list each committed test file and its status:
+
+```text
+Test Verification:
+- [x] path/to/unit_test_file — 5 tests written (3 happy, 1 error, 1 edge)
+- [x] path/to/integration_test_file — 2 E2E scenarios covered
+- [ ] path/to/missed_test_file — NOT YET WRITTEN ← go back and write it
+```
+
+> **Rule:** If ANY test file is marked `[ ]` (not written), go back to Step 2.7 and write it. Do NOT proceed. The review phase will cross-reference this report against the actual files.
+
 ### Step 2.8: Build Validation (MANDATORY)
 
 > **You MUST validate that the code compiles, passes lint, and passes tests before finishing.**
@@ -634,34 +764,59 @@ Run the project's build validation commands. **You MUST discover the correct com
 4. **If build fails**, fix compilation/build errors in your files only.
 5. **Iterate** — Run validation again after fixes. Repeat until clean.
 
-### Step 2.9: Verify Your Work
+### Step 2.9: Verify Your Work — Mandatory Completion Report
 
-Before finishing, perform a final verification:
+> **You MUST produce the completion report below before declaring your work done.** This is not a passive checklist — you must actively verify each item and provide evidence. The review phase will reject work that skips this report.
 
-1. **Read back every file you modified.** Check for:
-   - Syntax errors or missing imports
-   - Debug code that should be removed (`fmt.Println`, `console.log`, `print()`)
-   - Hardcoded values that should be configurable
-   - TODO/FIXME comments that should be resolved
-   - Consistent formatting
+Before finishing, perform a final verification and **produce a structured completion report**:
 
-2. **Observability checklist:**
-   - [ ] Logging: Entry/exit log lines on all significant operations
-   - [ ] Logging: Correct log levels (not everything at INFO)
-   - [ ] Logging: Structured key-value fields, not string concatenation
-   - [ ] Logging: No sensitive data logged (passwords, tokens, PII)
+#### 2.9.1: Code Quality Verification
 
-3. **Test coverage checklist:**
-   - [ ] Every new public function has at least one unit test
-   - [ ] Every error path is tested
-   - [ ] Edge cases covered: nil/empty inputs, zero values, boundaries
-   - [ ] E2E tests cover multi-layer flows
-   - [ ] E2E tests mock external dependencies properly
-   - [ ] No flaky tests (no `time.Sleep`, no order-dependence)
+**Read back every file you modified.** Check for and report:
+- Syntax errors or missing imports → List any found and fixed
+- Debug code removed (`fmt.Println`, `console.log`, `print()`) → Confirm none remain
+- Hardcoded values that should be configurable → List any found and fixed
+- TODO/FIXME comments that should be resolved → List any remaining with justification
+- Consistent formatting → Confirm checked
 
-4. **Check cross-file consistency.** If you added a field to a struct, did you update all serialization? If you added an API endpoint, is it documented?
+#### 2.9.2: Observability Verification
 
-5. **Run build validation** — see Step 2.8 and Step 2.10.
+**For each new code path, verify and report:**
+
+| Check | Status | Evidence |
+|-------|--------|----------|
+| Entry/exit log lines on all significant operations | ✅/❌ | List the functions with logging |
+| Correct log levels (not everything at INFO) | ✅/❌ | List log levels used and where |
+| Structured key-value fields, not string concatenation | ✅/❌ | Confirm pattern used |
+| No sensitive data logged (passwords, tokens, PII) | ✅/❌ | Confirm reviewed |
+| Metrics added for new operations *(if project uses metrics)* | ✅/❌/N/A | List metrics added or N/A |
+| Tracing spans on significant operations *(if project uses tracing)* | ✅/❌/N/A | List spans added or N/A |
+
+#### 2.9.3: Test Coverage Verification (CRITICAL — Cross-Reference with Step 2.3.1)
+
+**Go back to your Step 2.3.1 test commitment. For each committed test file, verify:**
+
+| Committed Test File | Status | Tests Written | Missing |
+|---------------------|--------|---------------|---------|
+| `path/to/test_file` | ✅/❌ | Count + types | List any gaps |
+
+**Then verify:**
+- [ ] Every new public function has at least one unit test → **List the functions and their test names**
+- [ ] Every error path is tested → **List the error paths tested**
+- [ ] Edge cases covered: nil/empty inputs, zero values, boundaries → **List the edge case tests**
+- [ ] E2E tests cover multi-layer flows → **List the E2E test scenarios** or explain why N/A
+- [ ] No flaky tests (no `time.Sleep`, no order-dependence) → Confirm checked
+
+> **If ANY row shows ❌ or any committed test is missing, go back and write it.** Do NOT proceed to Step 2.10.
+
+#### 2.9.4: Cross-File Consistency
+
+Check and report:
+- If you added a field to a struct/type, did you update all serialization, comparisons, and mappings?
+- If you added an API endpoint, is it documented?
+- If you modified an interface, did you update all implementations and mocks?
+
+#### 2.9.5: Run build validation — see Step 2.8 and Step 2.10.
 
 ### Step 2.10: Final Validation — Mock Generators, Linting, and Tests (MANDATORY)
 
@@ -731,13 +886,22 @@ The review MUST verify ALL of the following:
 - [ ] Tracing spans on significant operations with proper error recording *(if project uses tracing)*
 - [ ] Context propagation maintained through the call chain *(if project uses tracing)*
 
-#### Testing
+#### Testing (Cross-Reference with Step 2.3.1 Commitment)
+- [ ] **Pre-coding test commitment exists** (Step 2.3.1) — the coder declared test files before writing code
+- [ ] **Every committed test file was created** — cross-reference the Step 2.3.1 checklist against actual test files in the diff
+- [ ] **Test verification report exists** (Step 2.7.4) — the coder produced the test verification report
 - [ ] Unit tests exist for every new public function
 - [ ] Error paths are tested, not just happy paths
 - [ ] Edge cases covered (nil, empty, zero, boundary)
 - [ ] E2E/integration tests exist for multi-layer changes
 - [ ] Mocks properly simulate external dependencies
 - [ ] No flaky test patterns (`time.Sleep`, shared state, ordering)
+
+> **If the coder did not produce a test commitment (Step 2.3.1) or a test verification report (Step 2.7.4), or if any committed test file is missing from the diff, this is an automatic CHANGES_REQUESTED.** The coder must go back and write the missing tests.
+
+#### Completion Report
+- [ ] **Mandatory completion report exists** (Step 2.9) — the coder produced the structured completion report with observability verification, test coverage verification, and cross-file consistency checks
+- [ ] The completion report shows evidence, not just checkmarks
 
 #### Build & Quality
 - [ ] Build validation (lint, test, build) passes cleanly
@@ -750,16 +914,67 @@ The review MUST verify ALL of the following:
 
 If the review verdict is `CHANGES_REQUESTED`:
 
-1. Collect ALL findings from the review.
-2. Go back to **Phase 2: CODING** with the review findings as input.
-3. **The coder MUST fix ALL issues** found by the reviewers — critical, high, medium, AND low severity. Not just the critical ones.
-4. After coding, run build validation again (lint, test, build).
-5. Proceed to **Phase 3: REVIEW** again.
-6. Repeat until the review verdict is `APPROVED`.
+1. **Collect ALL findings** from the review. List every issue with its severity.
+2. **Validate each finding.** For each issue, determine if it's a valid concern or a false positive. If false positive, note why — but err on the side of fixing.
+3. **Go back to Phase 2: CODING** with the validated review findings as input.
+4. **Fix ALL valid issues** — critical, high, medium, AND low severity. Not just the critical ones. Every finding the reviewer raised (that isn't a clear false positive) must be addressed.
+5. **Re-run the full test suite** via `make` commands (the same targets from Step 2.10). After fixing review issues, you MUST re-run tests — fixes can introduce regressions.
+6. **Re-run linting** via `make` commands. Confirm all lint checks pass.
+7. **Verify all fixes** — re-read each file you changed and confirm the review finding is addressed.
+8. **Proceed to Phase 3: REVIEW** again.
+9. Repeat until the review verdict is `APPROVED`.
 
 Maximum iterations: **3**. If still not approved after 3 iterations, present all remaining findings to the user and ask for guidance.
 
 > **Rule:** Do NOT approve with known issues. If reviewers found real problems, fix them. The iteration loop exists for a reason.
+> **Rule:** After fixing review issues, you MUST re-run tests. Fixes can introduce regressions. Never skip this step.
+
+---
+
+## Phase 4: FINAL VALIDATION
+
+**Role:** You are a validation agent. You confirm the feature is complete and all quality gates pass.
+
+**Goal:** Run the full test and validation suite one final time after the review has approved the changes. This catches any regressions introduced during the review-fix cycle.
+
+> **This phase runs AFTER the review verdict is `APPROVED`.** It is the last gate before the feature is declared complete.
+
+### Step 4.1: Run Full Test Suite
+
+Run the project's complete test suite using `make` commands. **You MUST discover the correct commands** by reading `AGENTS.md`, `Makefile`, or equivalent — do NOT hardcode or guess targets.
+
+1. **Run unit tests** — Execute the project's unit test `make` target. All tests must pass.
+2. **Run E2E / integration tests** — If the project has a separate E2E test target, run it. All tests must pass.
+3. **Run linting** — Execute the project's lint `make` target. No new lint errors.
+4. **Run build** — Execute the project's build `make` target. Build must succeed.
+
+> **If any step fails:** Go back to Phase 2 (Coding) to fix the issue, then re-run the review cycle. Do NOT declare the feature complete with failing tests.
+
+### Step 4.2: Final Validation Report
+
+Produce the following report:
+
+```text
+Final Validation Report
+=======================
+Unit Tests:     ✅ PASS / ❌ FAIL (command: <make target used>)
+E2E Tests:      ✅ PASS / ❌ FAIL / N/A (command: <make target used>)
+Linting:        ✅ PASS / ❌ FAIL (command: <make target used>)
+Build:          ✅ PASS / ❌ FAIL (command: <make target used>)
+
+Feature:        <feature name>
+Files Changed:  <count>
+Tests Added:    <count>
+Status:         COMPLETE ✅ / BLOCKED ❌
+```
+
+### Step 4.3: Declare Complete
+
+Only if ALL validation steps pass:
+- Present the Final Validation Report to the user.
+- Declare the feature complete.
+
+> **Rule:** A feature is NOT complete until Phase 4 passes. Review approval alone is not sufficient — the final validation confirms everything still works after all iterations.
 
 ---
 
