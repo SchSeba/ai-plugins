@@ -338,6 +338,11 @@ Includes a [`GLOSSARY.md`](skills/write-a-skill/GLOSSARY.md) with domain vocabul
 ai-plugins/
 ├── AGENTS.md                 # Repository conventions and rules for AI agents
 ├── README.md                 # This file
+├── projects/                 # Per-project learned knowledge (auto-generated)
+│   └── <project-name>/       #   Directory per project (matches repo name)
+│       ├── CODING.md         #     Coding best practices for this project
+│       ├── VALIDATION.md     #     Build/test/lint commands for this project
+│       └── REVIEWING.md      #     Review patterns and insights for this project
 ├── .claude-plugin/           # Claude Code plugin manifest
 │   ├── marketplace.json
 │   └── plugin.json
@@ -376,6 +381,46 @@ ai-plugins/
 - **Skills** (`skills/<name>/SKILL.md`) contain the detailed agent instructions — the workflow steps, criteria, and guidelines that teach the AI how to perform a task.
 - **Commands** (`commands/<name>.md`) are the user-facing slash commands that route to the appropriate skill.
 - **Plugin manifests** (`.claude-plugin/` and `.cursor-plugin/`) register the skills, commands, and MCP servers with the respective editors.
+- **Project knowledge** (`projects/<project-name>/`) directories contain learned knowledge about specific projects (see below).
+
+## Project Knowledge
+
+Skills in this plugin automatically learn and persist knowledge about the projects they work with. This creates a **self-improving feedback loop** — every coding session, PR review, or comment resolution builds up project-specific knowledge that makes future sessions faster and more accurate.
+
+### How it works
+
+When a skill finishes working on a project, it writes what it learned into a `projects/<project-name>/` directory in this plugin repository. The directory name matches the project's repository name (e.g., `projects/sriov-network-operator/`, `projects/bytebot/`).
+
+Each project directory contains up to three files:
+
+| File | Purpose |
+|------|---------|
+| `CODING.md` | Coding best practices: conventions, architecture patterns, common pitfalls, reviewer preferences |
+| `VALIDATION.md` | Build and test commands: exact `make` targets (or equivalent), correct order, required flags and build tags |
+| `REVIEWING.md` | Review patterns: what reviewers look for, common findings, coding standards enforced during review |
+
+### Persistence and discovery
+
+Knowledge is persisted and discovered from two sources:
+
+1. **The target project's `.ai-rules/` directory** (`.ai-rules/CODING.md`, etc.) — Skills **write** learned knowledge here. It lives alongside the project code, so any tool or agent working on the same project benefits automatically. Since `.ai-rules/` is inside the project repo itself, no project-name subdirectory is needed.
+
+2. **This plugin repo** (`projects/<project-name>/CODING.md`, etc.) — Skills also **write** knowledge here. This shared layer makes knowledge available across ALL skills in the plugin. For example, validation commands discovered by `develop-feature` are also available to `pr-comment-resolver` and `code-review`.
+
+### Example
+
+After working on the `sriov-network-operator` project, the plugin might generate:
+
+```
+ai-plugins/
+└── projects/
+    └── sriov-network-operator/
+        ├── CODING.md          # "Use structured zerolog logging, not fmt.Println"
+        ├── VALIDATION.md      # "make fmt → make lint → make test-pkg CLUSTER_TYPE=kubernetes"
+        └── REVIEWING.md       # "Reviewers check for proper RBAC annotations on new controllers"
+```
+
+Skills automatically check these files before starting work, so they don't need to rediscover project conventions from scratch each time.
 
 ## MCP Servers
 
