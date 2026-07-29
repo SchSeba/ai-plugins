@@ -45,13 +45,15 @@ Execute these four phases in order. The planning phase requires explicit user ap
 
 ### Step 1.0: Read Project Guidelines (MANDATORY — Do This FIRST)
 
-Before any analysis, read the project's best-practices and contribution guidelines:
+Before any analysis, read the project's best-practices, contribution guidelines, and any previously learned knowledge:
 
-1. **Read `AGENTS.md`** — This is the primary source of project conventions, architecture rules, and agent-specific instructions. If this file exists, its rules override any defaults in this skill.
-2. **Read `CONTRIBUTING.md`** — Contribution workflow, PR format, commit conventions.
-3. **Read `CLAUDE.md`** or equivalent — Additional AI-agent instructions the project maintainers have set.
-4. **Read `Makefile` / build scripts** — Understand the build, test, and lint commands available.
-5. **Read linting configs** — `.golangci.yml`, `.eslintrc`, `pyproject.toml`, `rustfmt.toml`, etc.
+1. **Read `.ai-rules/`** — If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). These contain previously learned knowledge about this project — coding conventions, validation commands, and review patterns discovered during past sessions. **This is the highest-priority source** because it reflects confirmed, project-specific knowledge.
+2. **Read `projects/<project-name>/`** — If this plugin repository has a `projects/<project-name>/` directory (where `<project-name>` matches the target project's repo name), read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). These contain knowledge shared across all skills in this plugin, discovered during past sessions with this project.
+3. **Read `AGENTS.md`** — This is the primary source of project conventions, architecture rules, and agent-specific instructions. If this file exists, its rules override any defaults in this skill.
+4. **Read `CONTRIBUTING.md`** — Contribution workflow, PR format, commit conventions.
+5. **Read `CLAUDE.md`** or equivalent — Additional AI-agent instructions the project maintainers have set.
+6. **Read `Makefile` / build scripts** — Understand the build, test, and lint commands available.
+7. **Read linting configs** — `.golangci.yml`, `.eslintrc`, `pyproject.toml`, `rustfmt.toml`, etc.
 
 > **Rule:** If any of these files exist and contain instructions, you MUST follow them. Project-specific conventions always take precedence over the generic guidelines in this skill.
 
@@ -361,11 +363,13 @@ After presenting the plan:
 
 ### Step 2.0: Read Project Guidelines (MANDATORY — Do This FIRST)
 
-Before writing any code, re-read the project's best-practices files:
+Before writing any code, re-read the project's best-practices files and any previously learned knowledge:
 
-1. **Read `AGENTS.md`** — Follow all project-specific rules and conventions.
-2. **Read `CONTRIBUTING.md`** and any other project guidelines.
-3. **Read `Makefile`** — Know the exact build, test, and lint commands.
+1. **Read `.ai-rules/`** — If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). These contain previously learned coding conventions, validation commands, and review patterns. Apply them throughout your coding work.
+2. **Read `projects/<project-name>/`** — If this plugin repository has a `projects/<project-name>/` directory (where `<project-name>` matches the target project's repo name), read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). Apply any additional knowledge from this shared layer.
+3. **Read `AGENTS.md`** — Follow all project-specific rules and conventions.
+4. **Read `CONTRIBUTING.md`** and any other project guidelines.
+5. **Read `Makefile`** — Know the exact build, test, and lint commands.
 
 > **Rule:** Project-specific conventions from these files ALWAYS override the generic guidelines below. If `AGENTS.md` says "use `klog`", you use `klog` even if the guidelines below suggest `slog`.
 
@@ -767,7 +771,19 @@ Test Verification:
 
 > **You MUST validate that the code compiles, passes lint, and passes tests before finishing.**
 
-Run the project's build validation commands. **You MUST discover the correct commands** by reading `AGENTS.md`, `Makefile`, `package.json`, or `Cargo.toml` — do NOT assume any default commands. Look up the exact `make` targets for linting, testing, and building in the project's own documentation.
+Run the project's build validation commands. **You MUST discover the correct commands** for this specific project — do NOT assume any default targets.
+
+**Command discovery order** (stop at the first source that provides clear targets):
+
+1. **`.ai-rules/VALIDATION.md`** — Located in the target project's own repo. Contains validation commands persisted from past experience with this project. This is the highest-priority source because it reflects confirmed, project-specific commands.
+2. **Plugin repo project knowledge** — Check `projects/<project-name>/VALIDATION.md` in this plugin repository for validation commands previously discovered and persisted for this specific project. This directory is shared across all skills.
+3. **`AGENTS.md`** — The primary source of project conventions and agent instructions.
+4. **`Makefile` / `package.json` / `Cargo.toml` / `pyproject.toml`** — Read available targets and scripts.
+5. **`CONTRIBUTING.md`** — May document the expected validation workflow.
+
+Look up the exact targets for formatting, vetting/type-checking, linting, testing, and building. Different projects use different target names (e.g., one project may use `make fmt-code` instead of `make fmt`, or `make go-lint` instead of `make lint`). **Never assume target names — always look them up.**
+
+> **Example of what NOT to do:** Do not run `make fmt vet lint test` as a default. A project might require `make fmt-code`, `go vet ./...`, `make lint`, and a specific test matrix. Discover the actual commands.
 
 **Rules for Build Validation:**
 1. **Fix ONLY issues in your own code.** Other coding agents may be working in parallel on other features. Do not modify files you didn't create or change.
@@ -778,6 +794,19 @@ Run the project's build validation commands. **You MUST discover the correct com
    - Existing tests failing independently → Note in your summary, do not fix.
 4. **If build fails**, fix compilation/build errors in your files only.
 5. **Iterate** — Run validation again after fixes. Repeat until clean.
+
+**Validation summary:** After running validation, report which commands were run, whether each passed or failed, and whether any commands were adapted from defaults:
+
+```
+Validation Results:
+- Ran: <exact command 1>  →  ✅ PASS / ❌ FAIL
+- Ran: <exact command 2>  →  ✅ PASS / ❌ FAIL
+- ...
+
+Notes:
+- <any commands adapted from defaults, and why>
+- <any pre-existing failures unrelated to this change>
+```
 
 ### Step 2.9: Verify Your Work — Mandatory Completion Report
 
@@ -835,17 +864,20 @@ Check and report:
 
 ### Step 2.10: Final Validation — Mock Generators, Linting, and Tests (MANDATORY)
 
-> **This is the FINAL step before review.** You MUST run mock generators, linters, and tests before declaring your coding work complete. Use ONLY `make` commands — do not run tools manually.
+> **This is the FINAL step before review.** You MUST run mock generators, linters, and tests before declaring your coding work complete. Use the project's task runner — do not run tools directly.
 
 **Procedure:**
 
-1. **Read `AGENTS.md`** (or equivalent project guidelines) to find the exact `make` targets for:
-   - Mock generation (if applicable)
-   - Linting
-   - Unit tests
-   - Full build
+1. **Discover the correct commands** using the same command discovery order from Step 2.8:
+   - Target project's `.ai-rules/VALIDATION.md`
+   - Plugin repo project knowledge: `projects/<project-name>/VALIDATION.md`
+   - `AGENTS.md`
+   - `Makefile` / `package.json` / `Cargo.toml` / `pyproject.toml`
+   - `CONTRIBUTING.md`
 
-2. **Run the commands in order:** Execute the `make` targets discovered from `AGENTS.md` / `Makefile` in this order: mock generation → linting → tests → build. Do NOT guess or assume target names — use exactly what the project specifies.
+   Find the exact targets for: mock generation (if applicable) → formatting → linting → unit tests → full build.
+
+2. **Run the commands in order:** Execute the discovered targets in this order: mock generation → formatting → linting → tests → build. Do NOT guess or assume target names — use exactly what the project specifies.
 
 3. **Fix any failures** in your code ONLY:
    - If mock generation fails → update your interfaces or mock configuration
@@ -856,9 +888,60 @@ Check and report:
 4. **Re-run until clean.** Iterate the cycle until all commands pass without errors on YOUR code.
 
 > **CRITICAL RULES:**
-> - **ONLY use `make` commands.** Do not run `go test ./...`, `golangci-lint run`, `pytest`, or any tool directly. The `Makefile` is the single source of truth for how to run these tools.
-> - **Check `AGENTS.md` first** for the correct make targets. Different projects use different target names.
+> - **Use the project's task runner** (typically `make`, but could be `npm run`, `cargo`, etc.). Do not run tools directly (e.g., `go test ./...`, `golangci-lint run`, `pytest`). The project's build system is the single source of truth for how to run these tools.
+> - **Discover commands — never assume.** Different projects use different target names. What works in one repo will fail in another.
 > - **Fix ONLY your own code.** Other coding agents may be working in parallel. Do not modify files outside your feature scope.
+
+### Step 2.11: Self-Improving Knowledge Persistence (MANDATORY)
+
+> **After every coding iteration, persist what you learned.** This creates a self-improving feedback loop so future tasks on the same project start with accumulated knowledge instead of rediscovering everything from scratch.
+
+You MUST persist learned knowledge into **two layers**. Both use the same three-file structure:
+
+- **`CODING.md`** — Best practices learned during this task: patterns from PR review comments, CI investigation findings, coding conventions discovered, pitfalls to avoid.
+- **`VALIDATION.md`** — Exact validation and build commands that mirror CI. Include formatting, vetting/type-checking, linting, testing, and building commands — the goal is to run the same validations CI runs locally, so issues are caught before pushing.
+- **`REVIEWING.md`** — Review patterns and insights: what kinds of issues reviewers catch, preferred fix approaches, coding standards enforced during review, common reviewer expectations for this project.
+
+#### Layer 1: Target project's `.ai-rules/` directory
+
+Write to `.ai-rules/CODING.md`, `.ai-rules/VALIDATION.md`, and `.ai-rules/REVIEWING.md` inside the target project's own repository.
+
+This captures knowledge that lives alongside the project code. Since the `.ai-rules/` folder is inside the target project repo itself, no `<project-name>` subdirectory is needed — the project identity is implicit from the repo.
+
+#### Layer 2: Plugin repo's `projects/<project-name>/` directory
+
+Write to `projects/<project-name>/CODING.md`, `projects/<project-name>/VALIDATION.md`, and `projects/<project-name>/REVIEWING.md` in this plugin repository (the repo where this skill lives).
+
+This captures knowledge shared across ALL skills in this plugin repo. Any skill can read from `projects/<project-name>/` to benefit from knowledge discovered by other skills. For example, validation commands discovered by `develop-feature` are also available to `pr-comment-resolver` and `code-review`.
+
+#### What to persist
+
+**In `VALIDATION.md`:**
+- Every `make` target (or equivalent task runner command) discovered for: formatting, vetting, linting, testing, building, mock generation.
+- The correct order to run them.
+- Any targets that require special flags, environment variables, or build tags (e.g., `-tags sqlite_fts5`).
+- Any CI-only validations that cannot be run locally (e.g., tests requiring live infrastructure) — note these as "CI-only, skip locally".
+
+**In `CODING.md`:**
+- Coding conventions learned from PR review feedback (e.g., "use structured logging, not fmt.Println").
+- Architecture patterns specific to this project (e.g., "all new handlers must implement the Middleware interface").
+- CI investigation findings (e.g., "npm audit in web-lint can cause flaky failures due to new CVEs").
+- Common pitfalls (e.g., "the vendor directory is NOT tracked in git — do not commit vendor/ files").
+- Any corrections or preferences expressed by reviewers.
+
+**In `REVIEWING.md`:**
+- What kinds of issues reviewers consistently catch for this project.
+- Preferred fix approaches (e.g., "reviewers prefer `errors.Wrap` over `fmt.Errorf` for wrapping").
+- Coding standards enforced during review (e.g., "all public functions must have godoc comments").
+- Common reviewer expectations and patterns (e.g., "reviewers check for proper RBAC annotations on new controllers").
+
+#### Persistence rules
+
+1. **Append, don't replace.** If `CODING.md`, `VALIDATION.md`, or `REVIEWING.md` already exists, read it first and append new knowledge. Do not overwrite previously learned content.
+2. **Deduplicate.** If the new knowledge is already captured, skip it.
+3. **Create directories** if they don't exist (`.ai-rules/` in the target project, `projects/<project-name>/` in this plugin repo).
+4. **Persist after validation passes.** Write the knowledge files after Step 2.10 validation succeeds, so the persisted commands are known-good.
+5. **Include a timestamp header** for each entry so it's clear when the knowledge was captured.
 
 ---
 
@@ -870,7 +953,11 @@ Check and report:
 
 ### Step 3.0: Read Project Guidelines
 
-Before reviewing, read `AGENTS.md` and other project convention files to ensure you review against the project's actual standards, not just generic best practices.
+Before reviewing, read the project's conventions and previously learned knowledge:
+
+1. **Read `.ai-rules/`** — If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). Use `REVIEWING.md` to understand what reviewers typically look for in this project.
+2. **Read `projects/<project-name>/`** — If this plugin repository has a `projects/<project-name>/` directory, read `REVIEWING.md` for review patterns from past sessions.
+3. **Read `AGENTS.md`** and other project convention files to ensure you review against the project's actual standards, not just generic best practices.
 
 ### Step 3.1: Spawn Multi-Agent Review
 
@@ -956,12 +1043,12 @@ Maximum iterations: **3**. If still not approved after 3 iterations, present all
 
 ### Step 4.1: Run Full Test Suite
 
-Run the project's complete test suite using `make` commands. **You MUST discover the correct commands** by reading `AGENTS.md`, `Makefile`, or equivalent — do NOT hardcode or guess targets.
+Run the project's complete test suite. **You MUST discover the correct commands** using the same command discovery order from Step 2.8 (target project's `.ai-rules/VALIDATION.md` → plugin repo's `projects/<project-name>/VALIDATION.md` → `AGENTS.md` → `Makefile` / build scripts → `CONTRIBUTING.md`). Do NOT hardcode or guess targets.
 
-1. **Run unit tests** — Execute the project's unit test `make` target. All tests must pass.
+1. **Run unit tests** — Execute the project's unit test target. All tests must pass.
 2. **Run E2E / integration tests** — If the project has a separate E2E test target, run it. All tests must pass.
-3. **Run linting** — Execute the project's lint `make` target. No new lint errors.
-4. **Run build** — Execute the project's build `make` target. Build must succeed.
+3. **Run linting** — Execute the project's lint target. No new lint errors.
+4. **Run build** — Execute the project's build target. Build must succeed.
 
 > **If any step fails:** Go back to Phase 2 (Coding) to fix the issue, then re-run the review cycle. Do NOT declare the feature complete with failing tests.
 
