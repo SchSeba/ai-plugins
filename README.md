@@ -13,6 +13,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [Claude Code](#claude-code-1)
   - [Cursor](#cursor-1)
 - [Available Skills](#available-skills)
+  - [commit](#commit)
   - [develop-feature](#develop-feature)
   - [code-review](#code-review)
   - [review-engine](#review-engine)
@@ -169,6 +170,7 @@ cp -r commands/* ~/.cursor/commands/
 
 | Skill | Description | Command |
 |-------|-------------|---------|
+| [commit](#commit) | Conventional commit with diff analysis and split detection | `/commit` |
 | [develop-feature](#develop-feature) | Plan → Code → Review → Validate workflow with multi-subagent investigation and user approval | `/develop-feature` |
 | [code-review](#code-review) | Multi-perspective code review for PRs and local changes | `/code-review` |
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
@@ -176,6 +178,26 @@ cp -r commands/* ~/.cursor/commands/
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
 | [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
 | [write-a-skill](#write-a-skill) | Create new agent skills with proper structure, conventions, and registration | `/write-a-skill` |
+
+---
+
+### commit
+
+Create well-formatted git commits using conventional commit format. Reads project guidelines first, runs pre-commit checks, analyzes the staged diff, detects multiple logical changes and suggests splitting, and builds an imperative-mood commit message under 72 characters.
+
+**Usage:**
+
+```
+/commit
+```
+
+```
+/commit add user authentication endpoint
+```
+
+```
+/commit --no-verify
+```
 
 ---
 
@@ -383,6 +405,7 @@ ai-plugins/
 │   └── plugin.json
 ├── .mcp.json                 # MCP server configuration (GitHub, CodeGraph)
 ├── commands/                 # Slash command definitions
+│   ├── commit.md
 │   ├── code-review.md
 │   ├── develop-feature.md
 │   ├── jira-cli.md
