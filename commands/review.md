@@ -1,9 +1,9 @@
 ---
-name: pr-review
-description: Review a pull request from four engineering perspectives — developer, quality engineer, security engineer, and DevOps. Use when the user asks for a thorough PR review, a multi-perspective review, a full PR analysis, or wants developer/QA/security/DevOps review of a pull request.
+name: review
+description: Structured four-perspective pull request review — Developer, QE, Security, DevOps. Use when the user says review, review this PR, run a full PR review, or wants a structured multi-perspective PR analysis.
 ---
 
-# PR Review Command
+# Review Command
 
 This command reviews a pull request using the existing `code-review review-pr` workflow, then presents the findings grouped into four engineering perspectives.
 
