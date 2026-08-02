@@ -17,6 +17,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [commit](#commit)
   - [develop-feature](#develop-feature)
   - [explain-pr](#explain-pr)
+  - [generate-tests](#generate-tests)
   - [jira-cli](#jira-cli)
   - [kubernetes-pre-push](#kubernetes-pre-push)
   - [pr-comment-resolver](#pr-comment-resolver)
@@ -175,6 +176,7 @@ cp -r commands/* ~/.cursor/commands/
 | [commit](#commit) | Conventional commit with diff analysis and split detection | `/commit` |
 | [develop-feature](#develop-feature) | Plan → Code → Review → Validate workflow with multi-subagent investigation and user approval | `/develop-feature` |
 | [explain-pr](#explain-pr) | Explain a pull request in plain language for reviewers and teammates | `/explain` |
+| [generate-tests](#generate-tests) | Generate comprehensive test suites for specified code, discovering project testing conventions automatically | `/generate-tests` |
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
 | [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
@@ -283,6 +285,28 @@ Gathers PR metadata and diff, then produces a structured explanation with five s
 ```
 
 The explanation is displayed in the conversation only — it is **not** posted to GitHub unless you explicitly ask.
+
+---
+
+### generate-tests
+
+Generate comprehensive test suites for a specified file, component, or module. The command automatically discovers the project's testing framework and conventions — it examines existing test files, dependency manifests, and project documentation to match the established patterns rather than assuming any particular tool or library.
+
+The workflow analyzes the target code to identify all testable functions, methods, and behaviors, then generates unit tests, integration tests, and edge-case tests following the Arrange-Act-Assert pattern. Tests are verified by running the project's own test command.
+
+**Usage:**
+
+```
+/generate-tests src/services/auth.ts
+```
+
+```
+/generate-tests pkg/config/
+```
+
+```
+/generate-tests ./internal/handlers/payment.go
+```
 
 ---
 
@@ -435,6 +459,7 @@ ai-plugins/
 │   ├── commit.md
 │   ├── develop-feature.md
 │   ├── explain.md
+│   ├── generate-tests.md
 │   ├── jira-cli.md
 │   ├── kubernetes-pre-push.md
 │   ├── pr-comment-resolver.md
