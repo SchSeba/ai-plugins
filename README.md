@@ -13,13 +13,14 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [Claude Code](#claude-code-1)
   - [Cursor](#cursor-1)
 - [Available Skills](#available-skills)
+  - [code-review](#code-review)
   - [commit](#commit)
   - [develop-feature](#develop-feature)
-  - [code-review](#code-review)
-  - [review-engine](#review-engine)
-  - [pr-comment-resolver](#pr-comment-resolver)
+  - [explain-pr](#explain-pr)
   - [jira-cli](#jira-cli)
   - [kubernetes-pre-push](#kubernetes-pre-push)
+  - [pr-comment-resolver](#pr-comment-resolver)
+  - [review-engine](#review-engine)
   - [write-a-skill](#write-a-skill)
 - [Project Structure](#project-structure)
 - [MCP Servers](#mcp-servers)
@@ -170,14 +171,42 @@ cp -r commands/* ~/.cursor/commands/
 
 | Skill | Description | Command |
 |-------|-------------|---------|
+| [code-review](#code-review) | Multi-perspective code review for PRs and local changes | `/code-review` |
 | [commit](#commit) | Conventional commit with diff analysis and split detection | `/commit` |
 | [develop-feature](#develop-feature) | Plan → Code → Review → Validate workflow with multi-subagent investigation and user approval | `/develop-feature` |
-| [code-review](#code-review) | Multi-perspective code review for PRs and local changes | `/code-review` |
-| [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
-| [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
+| [explain-pr](#explain-pr) | Explain a pull request in plain language for reviewers and teammates | `/explain` |
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
 | [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
+| [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
+| [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [write-a-skill](#write-a-skill) | Create new agent skills with proper structure, conventions, and registration | `/write-a-skill` |
+
+---
+
+### code-review
+
+Multi-perspective code review that spawns parallel specialist reviewers (security, performance, language-specific, testing, etc.) and aggregates their findings into a single verdict.
+
+Supports two modes:
+
+| Command | Description |
+|---------|-------------|
+| `review-pr <pr-url>` | Review a GitHub pull request |
+| `review-change [project-path]` | Review uncommitted or staged local changes |
+
+**Usage:**
+
+```
+/code-review review-pr https://github.com/owner/repo/pull/42
+```
+
+```
+/code-review review-change
+```
+
+```
+/code-review review-change ./services/auth
+```
 
 ---
 
@@ -233,74 +262,27 @@ The planning phase spawns parallel specialist sub-agents to investigate the code
 
 ---
 
-### code-review
+### explain-pr
 
-Multi-perspective code review that spawns parallel specialist reviewers (security, performance, language-specific, testing, etc.) and aggregates their findings into a single verdict.
+Explain a pull request in plain language — summarise purpose, key changes, technical details, impact, and what to test. Ideal for onboarding reviewers, catching up on a PR you haven't seen, or sharing context with teammates who aren't deep in the code.
 
-Supports two modes:
-
-| Command | Description |
-|---------|-------------|
-| `review-pr <pr-url>` | Review a GitHub pull request |
-| `review-change [project-path]` | Review uncommitted or staged local changes |
+Gathers PR metadata and diff, then produces a structured explanation with five sections: Overview, Key Changes, Technical Details, Impact, and Testing. Scales output to match the PR's complexity — a trivial fix gets a short summary, a large refactor gets full detail.
 
 **Usage:**
 
 ```
-/code-review review-pr https://github.com/owner/repo/pull/42
+/explain
 ```
 
 ```
-/code-review review-change
+/explain Focus on the API changes
 ```
 
 ```
-/code-review review-change ./services/auth
+/explain Explain for a frontend engineer who doesn't know the backend
 ```
 
----
-
-### review-engine
-
-The shared low-level review engine used by `code-review` and `develop-feature`. It handles diff analysis, file categorization, parallel reviewer spawning, finding aggregation, and verdict rendering.
-
-You typically don't call this directly — it's invoked automatically by the other skills. Use it directly when you want the raw review engine on an arbitrary diff.
-
-**Usage:**
-
-```
-/review-engine
-```
-
-```
-/review-engine Review the changes in the last 3 commits
-```
-
----
-
-### pr-comment-resolver
-
-Interactively resolves PR review comments one at a time. For each comment, the agent shows the code, the reviewer's feedback, and a suggested fix — then waits for your approval before applying it.
-
-**Usage:**
-
-```
-/pr-comment-resolver https://github.com/owner/repo/pull/42
-```
-
-```
-/pr-comment-resolver my-project https://github.com/owner/repo/pull/42
-```
-
-**Workflow:**
-
-1. Fetches all unresolved review comments from the PR
-2. Filters to actionable comments (skips resolved threads and pure praise)
-3. Shows a numbered summary of all actionable comments
-4. Presents each comment one-by-one with the code snippet, reviewer feedback, and suggested fix
-5. Waits for your approval (`yes` / `no` / `skip`) before applying each change
-6. Runs validation after each approved change
-7. Shows a final summary of addressed vs. skipped comments
+The explanation is displayed in the conversation only — it is **not** posted to GitHub unless you explicitly ask.
 
 ---
 
@@ -365,6 +347,50 @@ Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kuber
 
 ---
 
+### pr-comment-resolver
+
+Interactively resolves PR review comments one at a time. For each comment, the agent shows the code, the reviewer's feedback, and a suggested fix — then waits for your approval before applying it.
+
+**Usage:**
+
+```
+/pr-comment-resolver https://github.com/owner/repo/pull/42
+```
+
+```
+/pr-comment-resolver my-project https://github.com/owner/repo/pull/42
+```
+
+**Workflow:**
+
+1. Fetches all unresolved review comments from the PR
+2. Filters to actionable comments (skips resolved threads and pure praise)
+3. Shows a numbered summary of all actionable comments
+4. Presents each comment one-by-one with the code snippet, reviewer feedback, and suggested fix
+5. Waits for your approval (`yes` / `no` / `skip`) before applying each change
+6. Runs validation after each approved change
+7. Shows a final summary of addressed vs. skipped comments
+
+---
+
+### review-engine
+
+The shared low-level review engine used by `code-review` and `develop-feature`. It handles diff analysis, file categorization, parallel reviewer spawning, finding aggregation, and verdict rendering.
+
+You typically don't call this directly — it's invoked automatically by the other skills. Use it directly when you want the raw review engine on an arbitrary diff.
+
+**Usage:**
+
+```
+/review-engine
+```
+
+```
+/review-engine Review the changes in the last 3 commits
+```
+
+---
+
 ### write-a-skill
 
 Step-by-step workflow for creating a new skill in this repository. Guides you through requirements gathering, directory creation, writing the skill body with proper information hierarchy, crafting the description, creating the command file, registering in README.md, and running the review checklist.
@@ -405,9 +431,10 @@ ai-plugins/
 │   └── plugin.json
 ├── .mcp.json                 # MCP server configuration (GitHub, CodeGraph)
 ├── commands/                 # Slash command definitions
-│   ├── commit.md
 │   ├── code-review.md
+│   ├── commit.md
 │   ├── develop-feature.md
+│   ├── explain.md
 │   ├── jira-cli.md
 │   ├── kubernetes-pre-push.md
 │   ├── pr-comment-resolver.md
@@ -419,6 +446,8 @@ ai-plugins/
     │   ├── review-change.md
     │   └── review-pr.md
     ├── develop-feature/
+    │   └── SKILL.md
+    ├── explain-pr/
     │   └── SKILL.md
     ├── jira-cli/
     │   ├── SKILL.md
