@@ -20,6 +20,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [jira-cli](#jira-cli)
   - [kubernetes-pre-push](#kubernetes-pre-push)
   - [pr-comment-resolver](#pr-comment-resolver)
+  - [pr-review](#pr-review)
   - [review-engine](#review-engine)
   - [write-a-skill](#write-a-skill)
 - [Project Structure](#project-structure)
@@ -178,6 +179,7 @@ cp -r commands/* ~/.cursor/commands/
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
 | [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
+| [pr-review](#pr-review) | Four-perspective PR review (Developer, QE, Security, DevOps) — routes through `code-review review-pr` | `/pr-review` |
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [write-a-skill](#write-a-skill) | Create new agent skills with proper structure, conventions, and registration | `/write-a-skill` |
 
@@ -373,6 +375,27 @@ Interactively resolves PR review comments one at a time. For each comment, the a
 
 ---
 
+### pr-review
+
+An alternative presentation format for the existing [code-review](#code-review) `review-pr` workflow. Runs the same PR review pipeline (diff analysis, parallel reviewer spawning, CI checks, finding aggregation) but groups the output into four engineering perspectives instead of the default flat severity-sorted format. Every issue found includes a clear explanation of how to fix it and a code snippet showing corrected code.
+
+**Usage:**
+
+```
+/pr-review https://github.com/owner/repo/pull/42
+```
+
+**Report structure:**
+
+| Section | Focus |
+|---------|-------|
+| Developer Review | Code quality, maintainability, performance, scalability, coding standards |
+| Quality Engineer Review | Test coverage, edge cases, potential bugs, regression risk |
+| Security Engineer Review | Vulnerabilities, data handling, OWASP compliance |
+| DevOps Review | CI/CD integration, infrastructure changes, monitoring needs |
+
+---
+
 ### review-engine
 
 The shared low-level review engine used by `code-review` and `develop-feature`. It handles diff analysis, file categorization, parallel reviewer spawning, finding aggregation, and verdict rendering.
@@ -438,6 +461,7 @@ ai-plugins/
 │   ├── jira-cli.md
 │   ├── kubernetes-pre-push.md
 │   ├── pr-comment-resolver.md
+│   ├── pr-review.md
 │   ├── review-engine.md
 │   └── write-a-skill.md
 └── skills/                   # Skill implementations
