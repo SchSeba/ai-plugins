@@ -17,6 +17,15 @@ Multi-perspective code review with two commands:
 - `review-change` - follow [review-change.md](review-change.md)
 - `review-pr` - follow [review-pr.md](review-pr.md)
 
-Both commands use the reusable review workflow in [../review-engine/SKILL.md](../review-engine/SKILL.md) and the perspective criteria in [../review-engine/review-perspectives.md](../review-engine/review-perspectives.md).
+## Dev-Task Review Variants
+
+When used inside the bytebot dev-task engine, two specialized review modes are available:
+
+| Variant | File | When |
+|---------|------|------|
+| Review Own PR | [review-own-pr.md](review-own-pr.md) | Reviewing changes the agent itself produced (own_pr / issue origin) |
+| Review External PR | [review-external-pr.md](review-external-pr.md) | Reviewing a PR authored by someone else (external_pr origin) |
+
+Both variants use the reusable review workflow in [../review-engine/SKILL.md](../review-engine/SKILL.md) and the perspective criteria in [../review-engine/review-perspectives.md](../review-engine/review-perspectives.md).
 
 If another skill needs the same review phase, reuse `review-engine` instead of duplicating the workflow.
