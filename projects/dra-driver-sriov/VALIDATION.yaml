@@ -1,0 +1,19 @@
+# Machine-readable ByteBot validation recipe. The repository identity is
+# supplied by ByteBot from Code > Settings; do not hard-code a database UUID.
+max_attempts: 2
+steps:
+  - name: download-go-modules
+    stage: prepare
+    command: >-
+      GOTOOLCHAIN=go1.26.0 go mod download &&
+      echo BYTEBOT_DRA_MODULES_READY
+    timeout_seconds: 600
+  - name: unit-and-controller-tests
+    stage: test
+    command: >-
+      GOTOOLCHAIN=go1.26.0
+      ENVTEST_ASSETS_DIR="$BYTEBOT_VALIDATION_ARTIFACTS/envtest"
+      make test &&
+      echo BYTEBOT_DRA_TESTS_PASSED
+    timeout_seconds: 900
+    required_output: BYTEBOT_DRA_TESTS_PASSED
