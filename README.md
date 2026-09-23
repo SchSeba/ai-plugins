@@ -466,6 +466,7 @@ ai-plugins/
 │   ├── <project-name>/       #   Directory per project (matches repo name)
 │   │   ├── CODING.md         #     Coding best practices for this project
 │   │   ├── VALIDATION.md     #     Build/test/lint commands for this project
+│   │   ├── VALIDATION.yaml   #     Optional ByteBot deterministic validation recipe
 │   │   └── REVIEWING.md      #     Review patterns and insights for this project
 │   └── kubernetes/           #   Kubernetes project knowledge
 │       ├── CODING.md         #     K8s coding conventions, API patterns, codegen
@@ -528,12 +529,13 @@ Skills in this plugin automatically learn and persist knowledge about the projec
 
 When a skill finishes working on a project, it writes what it learned into a `projects/<project-name>/` directory in this plugin repository. The directory name matches the project's repository name (e.g., `projects/sriov-network-operator/`, `projects/bytebot/`).
 
-Each project directory contains up to three files:
+Each project directory contains up to four files:
 
 | File | Purpose |
 |------|---------|
 | `CODING.md` | Coding best practices: conventions, architecture patterns, common pitfalls, reviewer preferences |
 | `VALIDATION.md` | Build and test commands: exact `make` targets (or equivalent), correct order, required flags and build tags |
+| `VALIDATION.yaml` | Optional machine-readable ByteBot recipe with bounded prepare/compile/test steps; ByteBot supplies the repository ID |
 | `REVIEWING.md` | Review patterns: what reviewers look for, common findings, coding standards enforced during review |
 
 ### Persistence and discovery

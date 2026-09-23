@@ -95,6 +95,15 @@ This command:
 **Important**: Do **not** run `go test ./...` directly — tests require the
 envtest binaries for controller and API tests. Always use `make test`.
 
+There is no `make envtest` target in this repository. Automation must either
+run `make test`/`make test-coverage`, which invokes `setup-envtest` itself, or
+run the explicit `setup-envtest ... use 1.36.x` command shown below before a
+targeted `go test` invocation.
+
+For a cold CI or isolated-runner cache, allow time for both Go module and
+envtest downloads. A five-minute whole-command deadline can expire before the
+suite starts and means **blocked infrastructure**, not failed tests.
+
 ### Coverage
 
 ```bash
@@ -281,6 +290,28 @@ All tool versions are defined in `common.mk`:
 | client-gen | v0.29.2 | `CLIENT_GEN_VERSION` |
 | yq | v4.50.1 | `YQ_VERSION` (in Makefile) |
 | envtest K8s | 1.36.x | `ENVTEST_K8S_VERSION` (in Makefile) |
+
+Use the repository's Go version when installing or running Go-based tools:
+
+```bash
+GOTOOLCHAIN=go1.26.0 make test
+GOTOOLCHAIN=go1.26.0 make lint
+```
+
+The pinned golangci-lint `v2.7.2` cannot read export data produced by some
+newer Go toolchains. Errors such as `unsupported version: 4` indicate a
+toolchain/linter mismatch, not a source lint failure. Pin `GOTOOLCHAIN` as
+above; do not upgrade project dependencies or the linter merely to work around
+the runner's default Go version.
+
+## ByteBot deterministic validation
+
+`VALIDATION.yaml` in this directory is the machine-readable default displayed
+under **Code → Settings → Validation**. It deliberately runs the repository's
+own `make test` target, stores downloaded envtest assets in
+`BYTEBOT_VALIDATION_ARTIFACTS`, pins Go 1.26.0, and prints a bounded success
+marker only after the real suite passes. Keep this file synchronized with the
+Makefile whenever toolchain, envtest, or test targets change.
 
 ---
 
