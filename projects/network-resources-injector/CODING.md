@@ -100,7 +100,7 @@ Do **not** use `fmt.Printf`, `log.Printf`, or `klog` for runtime logging.
 
 The `.golangci.yml` enforces import ordering via `goimports` with local prefix:
 
-```
+```text
 github.com/k8snetworkplumbingwg/network-resources-injector
 ```
 

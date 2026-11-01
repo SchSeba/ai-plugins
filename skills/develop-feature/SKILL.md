@@ -36,6 +36,7 @@ Execute these three phases in order. The plan is an input dependency -- it must 
 ```
 
 > **Plan dependency:** This workflow expects an approved implementation plan as input. The plan can come from:
+>
 > - The `plan-feature` skill (recommended for complex features)
 > - An inline planning phase you performed before invoking this skill
 > - A plan document at `docs/plans/{feature-name}-plan.md`
@@ -142,75 +143,90 @@ Test Files I Will Create:
 
 #### Go
 
-**Error Handling**
+##### Error Handling
+
 - Wrap errors with context: `fmt.Errorf("service_name: operation: %w", err)`
 - Never discard errors. Use sentinel errors for expected conditions.
 - Use `errors.Is()` and `errors.As()` — never compare error strings.
 
-**Interfaces**
+##### Interfaces
+
 - Keep interfaces small: 1–3 methods.
 - Define interfaces where they are consumed, not where they are implemented.
 - Accept interfaces, return structs.
 
-**Concurrency**
+##### Concurrency
+
 - Use `errgroup` for concurrent operations that return errors.
 - Always handle goroutine lifecycle — never fire-and-forget.
 - Use `context.Context` for cancellation and timeouts.
 - Protect shared state with `sync.Mutex` or `sync.RWMutex`.
 
-**Testing**
+##### Testing
+
 - Table-driven tests with `t.Run()` for subtests.
 - Use `t.Helper()` in test helper functions.
 - Test error paths explicitly — not just happy paths.
 - Test edge cases: nil inputs, empty slices, zero values, boundary conditions.
 
-**Performance**
+##### Performance
+
 - Pre-allocate slices when size is known.
 - Use `strings.Builder` for string concatenation in loops.
 - Avoid unnecessary copying of large structs.
 
 #### Python
 
-**Type Hints**
+##### Type Hints
+
 - Annotate ALL function signatures. Avoid `Any` unless truly necessary.
 - Use `TypedDict` for dictionary shapes, `Protocol` for structural typing.
 
-**Error Handling**
+##### Error Handling
+
 - Use specific exception types — never bare `except:`.
 - Use context managers for all resource management.
 
-**Testing**
+##### Testing
+
 - Use `pytest` with fixtures. `@pytest.mark.parametrize` for data-driven tests.
 - Test async code with `pytest-asyncio`.
 
-**Frameworks**
+##### Frameworks
+
 - **FastAPI**: Pydantic models for validation. `Depends()` for DI.
 - **Django**: Follow MVT. Use model managers for complex queries.
 
 #### TypeScript / React
 
-**Strict Typing**
+##### Strict Typing
+
 - No `any`. Use `unknown` and narrow instead.
 - Use discriminated unions for variant types.
 
-**React Hooks**
+##### React Hooks
+
 - Correct dependency arrays. Cleanup in `useEffect`.
 - Use `useCallback` and `useMemo` only when there's a measured performance benefit.
 
-**Component Design**
+##### Component Design
+
 - Single responsibility. Composition over prop drilling.
 - Handle loading, error, and empty states.
 
-**Accessibility**
+##### Accessibility
+
 - Semantic HTML. ARIA attributes. Keyboard navigation.
 
 #### Rust
 
-**Ownership and Borrowing**
+##### Ownership and Borrowing
+
 - Prefer borrowing (`&T`) over cloning.
 - Use `Cow<'_, str>` when a function may or may not need to allocate.
 
-**Error Handling**
+##### Error Handling
+
 - `thiserror` for library errors. `anyhow` for application errors.
 - Use the `?` operator for ergonomic error propagation.
 
@@ -234,6 +250,7 @@ Add log lines at appropriate levels throughout your new code. Follow the project
 **Structured Logging Best Practices:**
 
 - **Use structured key-value pairs**, not string concatenation or `fmt.Sprintf` for log fields:
+
   ```go
   // ✅ GOOD — structured fields
   logger.Info("resource created", "name", resource.Name, "namespace", resource.Namespace, "duration_ms", elapsed.Milliseconds())
@@ -257,6 +274,7 @@ Add log lines at appropriate levels throughout your new code. Follow the project
   - ✅ Log resource identifiers, operation types, and sanitized metadata
 
 - **Log at entry and exit points** of significant operations:
+
   ```go
   func (s *Service) ReconcileResource(ctx context.Context, name string) error {
       logger := s.logger.With("resource", name, "operation", "reconcile")
@@ -273,12 +291,12 @@ Add log lines at appropriate levels throughout your new code. Follow the project
       return nil
   }
   ```
+
 #### 2.5.2: Metrics (only if the project already uses metrics)
 
 > **Skip this section if the project has no existing metrics infrastructure.** Check the codebase first for prometheus, otel-metrics, or similar libraries. If none exist, do not add metrics.
 
 Add metrics to track the health and performance of your new code. Follow the project's existing metrics library and naming conventions.
-
 
 **Metric Types and When to Use Them:**
 
@@ -289,11 +307,13 @@ Add metrics to track the health and performance of your new code. Follow the pro
 | **Histogram** | Distribution of values (latencies, sizes) | `<service>_<operation>_duration_seconds` | `myservice_request_duration_seconds{method="GET"}` |
 
 **Follow the RED Method** for service-level metrics:
+
 - **R**ate — How many requests per second? → Counter
 - **E**rrors — How many of those requests fail? → Counter with error label
 - **D**uration — How long do requests take? → Histogram
 
 **Metrics Best Practices:**
+
 - Register metrics at initialization, not per-request
 - Use consistent label names across all metrics
 - Keep cardinality low — do not use unbounded label values (e.g., user IDs, request paths with parameters)
@@ -309,6 +329,7 @@ Add trace spans to your new code so operations can be followed across service bo
 **Tracing Best Practices:**
 
 - **Create spans for significant operations** — not every function, but every meaningful unit of work:
+
   ```go
   func (s *Service) ProcessItem(ctx context.Context, itemID string) error {
       ctx, span := s.tracer.Start(ctx, "Service.ProcessItem",
@@ -382,12 +403,14 @@ Apply to ALL code regardless of language.
 Every new or modified function MUST have unit tests. Follow these requirements:
 
 **Test Structure:**
+
 - **Table-driven tests** with descriptive subtests (e.g., `t.Run("returns error when input is nil", ...)`)
 - **One test function per behavior**, not one monolithic test per function
 - **Arrange-Act-Assert** pattern for clear test organization
 - Use `t.Helper()` in Go test helpers, `@pytest.fixture` in Python
 
 **What to Test:**
+
 - ✅ Happy path — the expected normal behavior
 - ✅ Error paths — every error return, every exception catch
 - ✅ Edge cases — nil/null inputs, empty slices/lists, zero values, boundary conditions
@@ -395,6 +418,7 @@ Every new or modified function MUST have unit tests. Follow these requirements:
 - ✅ Input validation — invalid inputs, malformed data, missing required fields
 
 **Mocking:**
+
 - Mock external dependencies (HTTP clients, databases, file systems)
 - Use the project's existing mock generation tool. Popular choices by language:
   - **Go**: `mockgen`, `mockery`, `testify/mock`
@@ -405,6 +429,7 @@ Every new or modified function MUST have unit tests. Follow these requirements:
 - Verify mock interactions when the side effect IS the behavior (e.g., "ensure the cache was invalidated")
 
 **Test Quality Rules:**
+
 - No `time.Sleep` in tests — use synchronization primitives or polling with timeout
 - No shared mutable state between tests — each test sets up its own data
 - Use `t.Cleanup()` / `t.TempDir()` in Go, `tmp_path` fixture in Python
@@ -415,24 +440,28 @@ Every new or modified function MUST have unit tests. Follow these requirements:
 When the feature touches multiple components or layers, E2E tests are MANDATORY.
 
 **When E2E Tests are Required:**
+
 - Feature touches 2+ layers (handler → service → repository)
 - Feature involves external service communication
 - Feature adds a new API endpoint
 - Feature changes data flow across component boundaries
 
 **E2E Test Structure:**
+
 - Set up the full component chain (or as much as practical)
 - Mock ONLY external dependencies outside your system boundary (third-party APIs, cloud services)
 - Use real implementations for internal components when possible
 - Test the full request/response cycle
 
 **Mocking Strategy for E2E Tests:**
+
 - **HTTP mocks**: Use `httptest.NewServer` (Go), `responses` / `aioresponses` (Python), `msw` (TypeScript)
 - **Database mocks**: Use test databases, in-memory SQLite, or transaction rollback patterns
 - **Message queue mocks**: Use in-memory implementations or test containers
 - **File system mocks**: Use `t.TempDir()` (Go), `tmp_path` (Python)
 
 **What to Assert in E2E Tests:**
+
 - The full operation completes successfully
 - Side effects occurred (data written, events emitted, caches updated)
 - Error responses have correct status codes and messages
@@ -441,6 +470,7 @@ When the feature touches multiple components or layers, E2E tests are MANDATORY.
 #### 2.7.3: Test Coverage Verification
 
 After writing tests:
+
 - Run the test suite and verify all new tests pass
 - Check that every new public function has at least one test
 - Check that every error path is tested
@@ -486,6 +516,7 @@ Look up the exact targets for formatting, vetting/type-checking, linting, testin
 > **Example of what NOT to do:** Do not run `make fmt vet lint test` as a default. A project might require `make fmt-code`, `go vet ./...`, `make lint`, and a specific test matrix. Discover the actual commands.
 
 **Rules for Build Validation:**
+
 1. **Fix ONLY issues in your own code.** Other coding agents may be working in parallel on other features. Do not modify files you didn't create or change.
 2. **If lint fails**, fix the lint issues in your files only.
 3. **If tests fail**, investigate whether the failure is in your new tests or existing tests:
@@ -497,7 +528,7 @@ Look up the exact targets for formatting, vetting/type-checking, linting, testin
 
 **Validation summary:** After running validation, report which commands were run, whether each passed or failed, and whether any commands were adapted from defaults:
 
-```
+```text
 Validation Results:
 - Ran: <exact command 1>  →  ✅ PASS / ❌ FAIL
 - Ran: <exact command 2>  →  ✅ PASS / ❌ FAIL
@@ -517,6 +548,7 @@ Before finishing, perform a final verification and **produce a structured comple
 #### 2.9.1: Code Quality Verification
 
 **Read back every file you modified.** Check for and report:
+
 - Syntax errors or missing imports → List any found and fixed
 - Debug code removed (`fmt.Println`, `console.log`, `print()`) → Confirm none remain
 - Hardcoded values that should be configurable → List any found and fixed
@@ -545,6 +577,7 @@ Before finishing, perform a final verification and **produce a structured comple
 | `path/to/test_file` | ✅/❌ | Count + types | List any gaps |
 
 **Then verify:**
+
 - [ ] Every new public function has at least one unit test → **List the functions and their test names**
 - [ ] Every error path is tested → **List the error paths tested**
 - [ ] Edge cases covered: nil/empty inputs, zero values, boundaries → **List the edge case tests**
@@ -556,11 +589,12 @@ Before finishing, perform a final verification and **produce a structured comple
 #### 2.9.4: Cross-File Consistency
 
 Check and report:
+
 - If you added a field to a struct/type, did you update all serialization, comparisons, and mappings?
 - If you added an API endpoint, is it documented?
 - If you modified an interface, did you update all implementations and mocks?
 
-#### 2.9.5: Run build validation — see Step 2.8 and Step 2.10.
+#### 2.9.5: Run build validation — see Step 2.8 and Step 2.10
 
 ### Step 2.10: Final Validation — Mock Generators, Linting, and Tests (MANDATORY)
 
@@ -588,6 +622,7 @@ Check and report:
 4. **Re-run until clean.** Iterate the cycle until all commands pass without errors on YOUR code.
 
 > **CRITICAL RULES:**
+>
 > - **Use the project's task runner** (typically `make`, but could be `npm run`, `cargo`, etc.). Do not run tools directly (e.g., `go test ./...`, `golangci-lint run`, `pytest`). The project's build system is the single source of truth for how to run these tools.
 > - **Discover commands — never assume.** Different projects use different target names. What works in one repo will fail in another.
 > - **Fix ONLY your own code.** Other coding agents may be working in parallel. Do not modify files outside your feature scope.
@@ -617,12 +652,14 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 #### What to persist
 
 **In `VALIDATION.md`:**
+
 - Every `make` target (or equivalent task runner command) discovered for: formatting, vetting, linting, testing, building, mock generation.
 - The correct order to run them.
 - Any targets that require special flags, environment variables, or build tags (e.g., `-tags sqlite_fts5`).
 - Any CI-only validations that cannot be run locally (e.g., tests requiring live infrastructure) — note these as "CI-only, skip locally".
 
 **In `CODING.md`:**
+
 - Coding conventions learned from PR review feedback (e.g., "use structured logging, not fmt.Println").
 - Architecture patterns specific to this project (e.g., "all new handlers must implement the Middleware interface").
 - CI investigation findings (e.g., "npm audit in web-lint can cause flaky failures due to new CVEs").
@@ -630,6 +667,7 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 - Any corrections or preferences expressed by reviewers.
 
 **In `REVIEWING.md`:**
+
 - What kinds of issues reviewers consistently catch for this project.
 - Preferred fix approaches (e.g., "reviewers prefer `errors.Wrap` over `fmt.Errorf` for wrapping").
 - Coding standards enforced during review (e.g., "all public functions must have godoc comments").
@@ -666,6 +704,7 @@ Before reviewing, read the project's conventions and previously learned knowledg
 Use the reusable review workflow in [../review-engine/SKILL.md](../review-engine/SKILL.md) and the perspective criteria in [../review-engine/review-perspectives.md](../review-engine/review-perspectives.md).
 
 When running the review as part of `develop-feature`, pass the following context into the review:
+
 - The original request
 - The saved plan from `docs/plans/{feature-name}-plan.md`
 - The full diff for the current iteration
@@ -676,12 +715,14 @@ When running the review as part of `develop-feature`, pass the following context
 The review MUST verify ALL of the following:
 
 #### Functional Correctness
+
 - [ ] The changes solve the user's request
 - [ ] The implementation follows the saved plan or clearly improves upon it
 - [ ] Previous review findings were fully addressed (if iterating)
 - [ ] Every finding includes a concrete code fix
 
 #### Observability
+
 - [ ] Structured logging at appropriate levels on all new code paths
 - [ ] No sensitive data in log messages
 - [ ] Metrics added for new operations (counters, histograms) *(if project uses metrics)*
@@ -689,6 +730,7 @@ The review MUST verify ALL of the following:
 - [ ] Context propagation maintained through the call chain *(if project uses tracing)*
 
 #### Testing (Cross-Reference with Step 2.3.1 Commitment)
+
 - [ ] **Pre-coding test commitment exists** (Step 2.3.1) — the coder declared test files before writing code
 - [ ] **Every committed test file was created** — cross-reference the Step 2.3.1 checklist against actual test files in the diff
 - [ ] **Test verification report exists** (Step 2.7.4) — the coder produced the test verification report
@@ -702,10 +744,12 @@ The review MUST verify ALL of the following:
 > **If the coder did not produce a test commitment (Step 2.3.1) or a test verification report (Step 2.7.4), or if any committed test file is missing from the diff, this is an automatic CHANGES_REQUESTED.** The coder must go back and write the missing tests.
 
 #### Completion Report
+
 - [ ] **Mandatory completion report exists** (Step 2.9) — the coder produced the structured completion report with observability verification, test coverage verification, and cross-file consistency checks
 - [ ] The completion report shows evidence, not just checkmarks
 
 #### Build & Quality
+
 - [ ] Build validation (lint, test, build) passes cleanly
 - [ ] No debug artifacts left in code
 - [ ] Documentation added for new public APIs/functions
@@ -773,6 +817,7 @@ Status:         COMPLETE ✅ / BLOCKED ❌
 ### Step 4.3: Declare Complete
 
 Only if ALL validation steps pass:
+
 - Present the Final Validation Report to the user.
 - Declare the feature complete.
 
@@ -783,17 +828,20 @@ Only if ALL validation steps pass:
 ## Guidelines
 
 ### Quality Standards
+
 - **Production quality, not prototypes.** Write code you'd approve in a code review.
 - **Every function has clear input/output contracts.** No hidden side effects.
 - **Handle ALL error paths.** If something can fail, handle it.
 - **Don't over-engineer.** Solve the actual problem. No speculative generality.
 
 ### Planning Standards
+
 - **Thoroughness over speed.** A well-researched plan prevents wasted coding iterations.
 - **Be specific about file paths.** Vague references are not actionable.
 - **Always include observability and test plans.** These are not afterthoughts.
 
 ### Coding Standards
+
 - **Match the codebase.** Your code must look like it belongs in this project.
 - **Follow `AGENTS.md` and project conventions** — they override everything in this skill.
 - **Add docstrings to every new function.**
@@ -802,6 +850,7 @@ Only if ALL validation steps pass:
 - **Tests are mandatory.** Both unit tests and E2E tests for multi-layer features.
 
 ### Review Standards
+
 - **Focus on what matters.** Correctness, security, observability, testing, and code quality. Skip pure style nitpicks.
 - **If changes look good, say APPROVED.** Do not manufacture issues.
 - **Every review finding MUST have a fix.** Never flag without showing the resolution.

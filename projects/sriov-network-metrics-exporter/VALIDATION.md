@@ -169,7 +169,7 @@ and pull request.
 
 ### Jobs and Dependencies
 
-```
+```text
 build (matrix: amd64/arm64/ppc64le/s390x) ──► test ──► (done)
                                            └─► test-coverage
 build-image (multi-arch Docker buildx)

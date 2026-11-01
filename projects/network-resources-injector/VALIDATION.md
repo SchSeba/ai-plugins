@@ -32,11 +32,13 @@ make
 ```
 
 The build script sets:
+
 - `CGO_ENABLED=0` — static binaries, no C dependencies.
 - `-ldflags "-s -w"` — stripped symbols for smaller binaries.
 - `-tags no_openssl` — avoids OpenSSL/CGO linking from the cfssl dependency.
 
 **Output binaries:**
+
 - `bin/webhook` — the main admission webhook server.
 - `bin/installer` — the webhook configuration installer.
 
@@ -94,11 +96,13 @@ make lint
 | `bidichk` | Dangerous unicode sequences |
 
 **Formatters enforced:**
+
 - `gofmt` — standard Go formatting.
 - `goimports` — import grouping with local prefix
   `github.com/k8snetworkplumbingwg/network-resources-injector`.
 
 **Exclusions:**
+
 - `test/` directory paths are excluded from lint.
 - Test files (`_test.go`) have relaxed rules for `errcheck`, `gosec`, `dupl`,
   `lll`, `goconst`, `funlen`.
@@ -126,6 +130,7 @@ go test --tags=unittests -race -coverprofile="$filePath" "./pkg/..."
 ```
 
 Key flags:
+
 - `--tags=unittests` — required build tag for unit tests.
 - `-race` — race detector enabled.
 - `-coverprofile` — generates a coverage profile in `/tmp/go-cover.<timestamp>.tmp`.
@@ -141,6 +146,7 @@ make e2e
 ```
 
 This is a two-step process:
+
 1. Sets up a KinD cluster with tools (`scripts/e2e_get_tools.sh` +
    `scripts/e2e_setup_cluster.sh`).
 2. Runs E2E tests: `go test -timeout 40m -v ./test/e2e/...`
@@ -153,6 +159,7 @@ This is a two-step process:
 ### SR-IOV Operator E2E Tests (CI only)
 
 The `buildtest.yml` workflow includes an `sriov-operator-e2e-test` job that:
+
 1. Builds an NRI container image.
 2. Checks out the `sriov-network-operator` repo.
 3. Runs the operator's E2E conformance tests against the locally built NRI
@@ -175,7 +182,7 @@ hardware/infrastructure issues.
 
 ### `buildtest.yml` Pipeline
 
-```
+```text
 Build (scripts/build.sh) → Unit Tests (scripts/test.sh)
                          ↓
               SR-IOV Operator E2E (needs: build)

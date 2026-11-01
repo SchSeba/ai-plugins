@@ -16,6 +16,7 @@ Expected input:
 ```
 
 Read and follow:
+
 - `skills/pr-comment-resolver/SKILL.md`
 
 If the user did not provide a pull request link, ask for it before proceeding.

@@ -35,19 +35,19 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
 
 ### Claude Code
 
-**Option A — Plugin Marketplace (recommended)**
+#### Option A — Plugin Marketplace (recommended)
 
 Run these slash commands inside a Claude Code session:
 
 1. Add the marketplace:
 
-```
+```text
 /plugin marketplace add SchSeba/ai-plugins
 ```
 
-2. Install the plugin:
+1. Install the plugin:
 
-```
+```text
 /plugin install ai-plugins@ai-plugins
 ```
 
@@ -63,12 +63,12 @@ Claude Code will prompt you to choose an installation scope:
 
 Once installed, the skills are namespaced under the plugin name. For example:
 
-```
+```text
 /ai-plugins:develop-feature Add JWT authentication
 /ai-plugins:code-review review-pr https://github.com/owner/repo/pull/42
 ```
 
-**Option B — Skills Directory**
+#### Option B — Skills Directory
 
 Clone the repo into your Claude skills directory for auto-loading without the marketplace:
 
@@ -78,11 +78,11 @@ git clone https://github.com/SchSeba/ai-plugins.git ~/.claude/skills/ai-plugins
 
 Skills loaded this way are available directly (without namespacing):
 
-```
+```text
 /develop-feature Add JWT authentication
 ```
 
-**Option C — Plugin Directory (development/testing only)**
+#### Option C — Plugin Directory (development/testing only)
 
 For local development or testing changes to the plugin:
 
@@ -93,7 +93,7 @@ claude --plugin-dir ./ai-plugins
 
 ### Cursor
 
-**Option A — Remote Rule from GitHub (recommended)**
+#### Option A — Remote Rule from GitHub (recommended)
 
 1. Open **Cursor Settings** → **Rules**
 2. Click **Add Rule** → select **Remote Rule (GitHub)**
@@ -101,7 +101,7 @@ claude --plugin-dir ./ai-plugins
 
 Cursor will pull the skills and commands automatically.
 
-**Option B — Copy skills to your project**
+#### Option B — Copy skills to your project
 
 ```bash
 git clone https://github.com/SchSeba/ai-plugins.git
@@ -121,15 +121,15 @@ After the plugin is installed, here's how to pull the latest skill updates for e
 
 ### Claude Code
 
-**Option A — Plugin Marketplace**
+#### Option A — Plugin Marketplace
 
 Run this slash command inside a Claude Code session:
 
-```
+```text
 /plugin update ai-plugins@ai-plugins
 ```
 
-**Option B — Skills Directory**
+#### Option B — Skills Directory
 
 Pull the latest changes from the repository:
 
@@ -137,7 +137,7 @@ Pull the latest changes from the repository:
 cd ~/.claude/skills/ai-plugins && git pull
 ```
 
-**Option C — Plugin Directory**
+#### Option C — Plugin Directory
 
 Pull the latest changes in the cloned directory:
 
@@ -147,11 +147,11 @@ cd ./ai-plugins && git pull
 
 ### Cursor
 
-**Option A — Remote Rule from GitHub**
+#### Option A — Remote Rule from GitHub
 
 No action needed — Cursor automatically re-fetches the latest skills from GitHub on each session.
 
-**Option B — Copy skills to your project**
+#### Option B — Copy skills to your project
 
 Pull the latest changes and re-copy the files:
 
@@ -200,15 +200,15 @@ Supports two modes:
 
 **Usage:**
 
-```
+```text
 /code-review review-pr https://github.com/owner/repo/pull/42
 ```
 
-```
+```text
 /code-review review-change
 ```
 
-```
+```text
 /code-review review-change ./services/auth
 ```
 
@@ -220,15 +220,15 @@ Create well-formatted git commits using conventional commit format. Reads projec
 
 **Usage:**
 
-```
+```text
 /commit
 ```
 
-```
+```text
 /commit add user authentication endpoint
 ```
 
-```
+```text
 /commit --no-verify
 ```
 
@@ -240,7 +240,7 @@ A four-phase development workflow: **Plan → Code → Review → Validate** wit
 
 The planning phase spawns parallel specialist sub-agents to investigate the codebase, then presents a structured plan for user approval. After approval, the agent writes production-grade code with tests, reviews its own work with multi-perspective review, and runs a final validation phase. If the review finds issues, it loops back to coding — up to 3 iterations.
 
-```
+```text
 +----------+     +----------+     +----------+     +----------+
 |   PLAN   | --> |   CODE   | --> |  REVIEW  | --> | VALIDATE |
 +----------+     +----------+     +----------+     +----------+
@@ -252,15 +252,15 @@ The planning phase spawns parallel specialist sub-agents to investigate the code
 
 **Usage:**
 
-```
+```text
 /develop-feature Add user authentication with JWT tokens
 ```
 
-```
+```text
 /develop-feature Fix the race condition in the connection pool cleanup
 ```
 
-```
+```text
 /develop-feature Refactor the payment service to use the strategy pattern
 ```
 
@@ -274,15 +274,15 @@ Gathers PR metadata and diff, then produces a structured explanation with five s
 
 **Usage:**
 
-```
+```text
 /explain
 ```
 
-```
+```text
 /explain Focus on the API changes
 ```
 
-```
+```text
 /explain Explain for a frontend engineer who doesn't know the backend
 ```
 
@@ -298,15 +298,15 @@ The workflow analyzes the target code to identify all testable functions, method
 
 **Usage:**
 
-```
+```text
 /generate-tests src/services/auth.ts
 ```
 
-```
+```text
 /generate-tests pkg/config/
 ```
 
-```
+```text
 /generate-tests ./internal/handlers/payment.go
 ```
 
@@ -323,19 +323,19 @@ Query your Jira tasks and epics using the [jira-cli](https://github.com/ankitpok
 
 **Usage:**
 
-```
+```text
 /jira-cli get_my_tasks
 ```
 
-```
+```text
 /jira-cli get_my_tasks MYPROJ 10
 ```
 
-```
+```text
 /jira-cli get_my_epics openshift-4.22
 ```
 
-```
+```text
 /jira-cli get_my_epics openshift-4.22 OCPBUGS 50
 ```
 
@@ -354,11 +354,11 @@ Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kuber
 
 **Usage:**
 
-```
+```text
 /kubernetes-pre-push
 ```
 
-```
+```text
 /kubernetes-pre-push ./pkg/apis/resource/... ./pkg/scheduler/framework/plugins/dynamicresources/...
 ```
 
@@ -379,11 +379,11 @@ Interactively resolves PR review comments one at a time for any repository. For 
 
 **Usage:**
 
-```
+```text
 /pr-comment-resolver https://github.com/owner/repo/pull/42
 ```
 
-```
+```text
 /pr-comment-resolver my-project https://github.com/owner/repo/pull/42
 ```
 
@@ -406,7 +406,7 @@ Structured four-perspective PR review. Runs the [code-review](#code-review) `rev
 
 **Usage:**
 
-```
+```text
 /review https://github.com/owner/repo/pull/42
 ```
 
@@ -429,11 +429,11 @@ You typically don't call this directly — it's invoked automatically by the oth
 
 **Usage:**
 
-```
+```text
 /review-engine
 ```
 
-```
+```text
 /review-engine Review the changes in the last 3 commits
 ```
 
@@ -447,11 +447,11 @@ Integrates best practices from [mattpocock's writing-great-skills](https://githu
 
 **Usage:**
 
-```
+```text
 /write-a-skill Create a skill for database migration management
 ```
 
-```
+```text
 /write-a-skill
 ```
 
@@ -459,10 +459,19 @@ Includes a [`GLOSSARY.md`](skills/write-a-skill/GLOSSARY.md) with domain vocabul
 
 ## Project Structure
 
-```
+```text
 ai-plugins/
+├── .github/
+│   └── workflows/
+│       └── markdown-lint.yml # Markdown lint check for pull requests and pushes
+├── .gitignore                # Local dependency exclusions
+├── .markdownlint.jsonc       # Markdown lint rules
 ├── AGENTS.md                 # Repository conventions and rules for AI agents
 ├── README.md                 # This file
+├── package.json              # Markdown validation command and tooling
+├── package-lock.json         # Locked Markdown lint dependencies
+├── scripts/
+│   └── lint-markdown.mjs     # Lints Git-tracked Markdown files
 ├── projects/                 # Per-project learned knowledge (auto-generated)
 │   ├── <project-name>/       #   Directory per project (matches repo name)
 │   │   ├── CODING.md         #     Coding best practices for this project
@@ -552,7 +561,7 @@ Knowledge is persisted and discovered from two sources:
 
 After working on the `sriov-network-operator` project, the plugin might generate:
 
-```
+```text
 ai-plugins/
 └── projects/
     └── sriov-network-operator/
@@ -574,11 +583,13 @@ The [GitHub MCP server](https://github.com/github/github-mcp-server) gives skill
 **Setup:**
 
 1. Export your GitHub token:
+
    ```bash
    export GITHUB_PERSONAL_ACCESS_TOKEN=ghp_your_token_here
    ```
 
 2. The config uses `podman` by default. If you use Docker, update `.mcp.json`:
+
    ```json
    {
      "github": {
@@ -636,6 +647,17 @@ codegraph init
 This creates a `.codegraph/` directory with the indexed code graph. All code-related skills in this plugin will automatically detect and use CodeGraph when available, and will run `codegraph init` if the `.codegraph/` directory is missing.
 
 ## Contributing
+
+### Markdown validation
+
+Markdown validation requires Node.js 22 or newer and npm. From the repository root, install the locked dependencies and run the lint check:
+
+```bash
+npm ci
+npm run lint:md
+```
+
+The check covers Git-tracked Markdown files throughout the repository. Stage new Markdown files before running it so Git includes them. The command reports violations without changing files.
 
 Skills are plain Markdown files — no executable code required. To add a new skill:
 

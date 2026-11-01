@@ -54,10 +54,12 @@ If a codebase is available, scan it to gather context that sharpens your questio
 Read the review perspectives in [../review-engine/review-perspectives.md](../review-engine/review-perspectives.md) and select the dimensions most relevant to the user's plan.
 
 **Always include:**
+
 - **Security** — every plan has a security surface
 - **Performance** — every plan has performance implications
 
 **Include when relevant:**
+
 - **Go / Python / Frontend** — if the plan involves code in that language
 - **API** — if the plan involves endpoints, contracts, or external interfaces
 - **Database** — if the plan touches data models, migrations, or queries
@@ -69,6 +71,7 @@ Read the review perspectives in [../review-engine/review-perspectives.md](../rev
 - **Integration & E2E Test** — if the plan spans multiple services or layers
 
 **Additionally, always consider these cross-cutting concerns:**
+
 - **Backwards compatibility** — will this break existing users or APIs?
 - **Operational readiness** — how will this be deployed, monitored, rolled back?
 - **Failure modes** — what happens when things go wrong?
@@ -87,6 +90,7 @@ Walk through each selected dimension systematically. For **each question**:
 5. **Follow up** if the answer reveals a new concern or an unresolved dependency. Pursue each branch to its conclusion before moving to the next dimension.
 
 **Interview style:**
+
 - Be relentless but constructive. The goal is to uncover blind spots, not to be adversarial.
 - Prioritize questions that expose real risks: data loss, security holes, breaking changes, scalability cliffs, operational gaps.
 - If the user's answer is vague, push for specifics. "How exactly?" and "What happens when that fails?" are your best tools.

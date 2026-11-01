@@ -35,7 +35,7 @@ Ask the user about:
 
 ## Step 2: Create the Skill Directory
 
-```
+```text
 skills/<skill-name>/
 ├── SKILL.md           # Main instructions (required)
 ├── GLOSSARY.md        # Definitions / reference (if terms accumulate)
@@ -62,6 +62,7 @@ description: <what it does>. Use when <specific triggers>.
 ```
 
 **Frontmatter rules:**
+
 - `name` must match the directory name exactly.
 - `description` is the **only thing the agent sees** when picking which skill to load. Make it count.
 - First sentence: state the capability, front-loading a **leading word** that anchors the skill's identity.
@@ -122,18 +123,21 @@ Use relative links from `SKILL.md` to reference split files. The pointer's _word
 The description is the skill's machine-readable trigger and the source of its **context load** — the cost it imposes on the agent's context window every turn.
 
 **Good description:**
-```
+
+```text
 Extract text and tables from PDF files, fill forms, merge documents.
 Use when working with PDF files or when user mentions PDFs, forms,
 or document extraction.
 ```
 
 **Bad description:**
-```
+
+```text
 Helps with documents.
 ```
 
 **Checklist:**
+
 - [ ] Front-loads a **leading word** that anchors invocation
 - [ ] First sentence states the capability clearly
 - [ ] Second sentence lists specific trigger words/contexts

@@ -87,6 +87,7 @@ make test
 ```
 
 This command:
+
 1. Downloads envtest K8s API server binaries (version `1.36.x`) via
    `setup-envtest` from `sigs.k8s.io/controller-runtime/tools/setup-envtest`.
 2. Sets `KUBEBUILDER_ASSETS` to point to the downloaded binaries.
@@ -149,6 +150,7 @@ make generate-deepcopy
 
 Uses `controller-gen` (version `v0.20.0`) to generate `zz_generated.deepcopy.go`
 for both API packages:
+
 - `pkg/api/virtualfunction/v1alpha1/`
 - `pkg/api/sriovdra/v1alpha1/`
 
@@ -192,6 +194,7 @@ make build
 ```
 
 Binaries are built with:
+
 - `CGO_LDFLAGS_ALLOW='-Wl,--unresolved-symbols=ignore-in-object-files'`
 - `-ldflags "-s -w -X main.version=$(VERSION)"`
 
@@ -207,6 +210,7 @@ CONTAINER_TOOL=podman IMAGE_NAME=localhost/dra-driver-sriov VERSION=latest \
 ```
 
 The Dockerfile is at `deployments/container/Dockerfile`:
+
 - **Builder stage**: `golang:<GOLANG_VERSION>` — compiles the binary.
 - **Runtime stage**: CentOS 9 Stream — includes `hwdata`, `pciutils`.
 

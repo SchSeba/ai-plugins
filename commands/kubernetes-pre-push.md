@@ -12,6 +12,7 @@ Use the text after the command name as the target scope. If your command runtime
 If no scope was provided, discover the changed packages automatically from `git diff` against the upstream base branch.
 
 Read and follow:
+
 - `skills/kubernetes-pre-push/SKILL.md`
 - `projects/kubernetes/VALIDATION.md`
 - `projects/kubernetes/CODING.md`

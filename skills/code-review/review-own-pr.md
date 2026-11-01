@@ -7,6 +7,7 @@ This variant focuses on **internal QA** — the reviewer evaluates the coding ag
 ## When to Use
 
 Use this review type when:
+
 - The dev-task engine is reviewing changes it produced (own PR or issue-originated task)
 - The agent completed a coding phase and needs self-review before marking done
 - A CI check passed/failed and the review phase is re-evaluating

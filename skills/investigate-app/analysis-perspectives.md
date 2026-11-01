@@ -18,6 +18,7 @@ Identify runtime errors, unhandled exceptions, panics, crashes, and logic bugs
 visible in production log output.
 
 **Log patterns:**
+
 - Stack traces, goroutine dumps, core dumps
 - Panic / fatal messages
 - Nil pointer dereferences, index out of range, map access on nil
@@ -29,6 +30,7 @@ visible in production log output.
 - Unexpected type conversions or cast failures
 
 **Trace analysis:**
+
 - Spans with error status codes
 - Spans with exception events or error tags
 - Traces that terminate unexpectedly mid-flow
@@ -66,6 +68,7 @@ Identify slow operations, resource exhaustion, memory leaks, CPU spikes,
 inefficient queries, and throughput bottlenecks.
 
 **Log patterns:**
+
 - Slow query warnings, query timeouts
 - High latency log entries (operations taking >1s, or >p99 threshold)
 - Connection pool exhaustion (`too many connections`, `connection refused`)
@@ -77,6 +80,7 @@ inefficient queries, and throughput bottlenecks.
 - Large payload warnings
 
 **Trace analysis:**
+
 - Spans with unusually high duration (>p95 for that operation type)
 - Sequential operations that could be parallelized
 - Repeated calls to the same downstream service within a single trace
@@ -116,6 +120,7 @@ Identify crash loops, restart patterns, leader election failures, race condition
 deadlocks, and any signals that threaten system uptime.
 
 **Log patterns:**
+
 - Container restart indicators (`Back-off restarting`, restart count increments)
 - Crash loop patterns (repeated start → crash within short intervals)
 - Leader election failures or split-brain logs
@@ -129,6 +134,7 @@ deadlocks, and any signals that threaten system uptime.
 - Context deadline exceeded on internal operations
 
 **Trace analysis:**
+
 - Traces showing cascading failures across services
 - Timeout propagation patterns
 - Circuit breaker activations
@@ -168,6 +174,7 @@ dependency visibility within Jaeger. Ensure the tracing infrastructure itself
 is healthy and providing actionable data.
 
 **Log patterns:**
+
 - Trace/span ID mismatches or missing correlation
 - `trace_id` or `span_id` fields absent from structured logs
 - OpenTelemetry SDK errors or exporter failures
@@ -175,6 +182,7 @@ is healthy and providing actionable data.
 - Sampling configuration messages
 
 **Trace analysis:**
+
 - **Coverage gaps**: services in the architecture that have zero traces
 - **Broken propagation**: parent spans with no children where calls are expected
 - **Orphaned traces**: child spans that lack a parent (broken context propagation)
@@ -219,6 +227,7 @@ Ensure logs are actionable for debugging, comply with best practices, and
 integrate well with the overall observability stack.
 
 **Log patterns:**
+
 - Unstructured log lines mixed with structured (JSON) output
 - Missing or inconsistent log levels (debug logs in production, errors logged as info)
 - Missing correlation IDs / request IDs / trace IDs in log entries
@@ -230,6 +239,7 @@ integrate well with the overall observability stack.
 - Log rotation or truncation issues (incomplete lines)
 
 **Trace analysis:**
+
 - Logs not correlated with trace spans (missing `trace_id` in log fields)
 - Events on spans not matching corresponding log entries
 - Log-level mismatches between what spans report and what logs say
@@ -266,6 +276,7 @@ Identify patterns that degrade user experience, cause confusion, or indicate
 unreliable API behavior.
 
 **Log patterns:**
+
 - Slow response time warnings (p95/p99 latency exceeding SLOs)
 - High error rate on specific endpoints
 - Timeout patterns on user-facing operations
@@ -277,6 +288,7 @@ unreliable API behavior.
 - 4xx error clusters indicating UX or documentation issues
 
 **Trace analysis:**
+
 - End-to-end request latency for user-facing operations
 - Error rates per endpoint/operation
 - Latency distribution across service hops for a single user request
@@ -317,6 +329,7 @@ token usage, prompt inefficiency, unnecessary API calls, and caching
 opportunities that drive up operational costs.
 
 **Log patterns:**
+
 - Token count per request (input/output/total)
 - LLM API call frequency and cost indicators
 - Large prompt/context window usage
@@ -328,6 +341,7 @@ opportunities that drive up operational costs.
 - Model selection patterns (using expensive models for simple tasks)
 
 **Trace analysis:**
+
 - LLM API call spans with duration and token counts as attributes
 - Sequential LLM calls that could be batched or parallelized
 - Redundant embedding computations within a single request flow
@@ -365,6 +379,7 @@ Identify security violations, credential exposure, authentication failures,
 authorization bypasses, and compliance risks visible in runtime logs and traces.
 
 **Log patterns:**
+
 - Secrets, tokens, API keys, passwords appearing in log output
 - Authentication failures (repeated failed logins, brute force indicators)
 - Authorization failures (RBAC denials, forbidden access)
@@ -377,6 +392,7 @@ authorization bypasses, and compliance risks visible in runtime logs and traces.
 - Insecure protocol usage (HTTP instead of HTTPS, unencrypted connections)
 
 **Trace analysis:**
+
 - Unauthenticated requests reaching backend services
 - Authorization checks missing on certain service hops
 - Sensitive data visible in span attributes or tags

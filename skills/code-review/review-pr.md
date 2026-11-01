@@ -1,6 +1,6 @@
 # review-pr Workflow
 
-```
+```text
 review-pr <pr-url>
 ```
 
@@ -23,6 +23,7 @@ Understand the **intent** before reviewing code.
 ### 2a: Read PR Description & Linked Issues
 
 Extract from the PR metadata:
+
 - What problem is being solved (from the body)
 - Linked issues (`Fixes #N`, `Closes #N`, `Resolves #N`, or linked URLs)
 - Labels and milestone
@@ -43,6 +44,7 @@ git log {base}..HEAD --oneline
 ```
 
 Check for:
+
 - **WIP/fixup commits** that should have been cleaned up (`WIP`, `fixup!`, `squash!`, `temp`)
 - **Meaningful messages** — do they explain *why*, not just *what*?
 - **Logical structure** — one giant commit that should be split, or many tiny commits that should be squashed?
@@ -67,9 +69,11 @@ If any checks are **failing**:
 
 1. Identify which checks failed.
 2. Fetch failure logs:
+
    ```bash
    gh run view {run_id} --repo {owner}/{repo} --log-failed
    ```
+
 3. Diagnose: code issue from the PR, flaky test, infra issue, or pre-existing failure on base branch?
 4. For code issues, cross-reference with the diff and include a finding with a concrete fix.
 
@@ -78,13 +82,16 @@ If any checks are **failing**:
 Write the full review to the docs workspace using numbered revisions.
 
 1. List existing reviews:
-   ```
+
+   ```text
    workspace(action: "list", path: "docs/pr-reviews/")
    ```
+
    Look for `{repo}-pr{number}-revision-*.md`. Use next available number, starting at 1.
 
 2. Write the review:
-   ```
+
+   ```text
    workspace(action: "write", path: "docs/pr-reviews/{repo}-pr{number}-revision-{N}.md", content: "<review>")
    ```
 
@@ -93,6 +100,7 @@ Write the full review to the docs workspace using numbered revisions.
 Use the output format below, then follow the Optional Interactive Finding Presentation from [../review-engine/SKILL.md](../review-engine/SKILL.md).
 
 Map the shared review verdicts like this:
+
 - `APPROVED` -> `APPROVE`
 - `CHANGES_REQUESTED` -> `REQUEST_CHANGES`
 - Use `NEEDS_DISCUSSION` when context remains incomplete or ambiguous.
@@ -105,7 +113,7 @@ When the user approves a finding ("yes"), publish the comment to GitHub using th
 
 The **first line** MUST be the clickable link to the saved review:
 
-```
+```text
 📄 [View full review](pr-reviews/{repo}-pr{number}-revision-{N}.md)
 
 **Revision**: {N} | **Head SHA**: `{sha}` | **Reviewed at**: {YYYY-MM-DD HH:MM UTC}

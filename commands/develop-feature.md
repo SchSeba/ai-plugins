@@ -16,6 +16,7 @@ If no request was provided, ask the user for the missing feature, bug fix, or ch
 If a plan file already exists at `docs/plans/{feature-name}-plan.md`, skip to Step 2.
 
 Otherwise, read and follow:
+
 - `skills/plan-feature/SKILL.md`
 
 Wait for user approval of the plan before proceeding.
@@ -23,6 +24,7 @@ Wait for user approval of the plan before proceeding.
 ## Step 2: Implement, Review, Validate
 
 Read and follow:
+
 - `skills/develop-feature/SKILL.md`
 - `skills/review-engine/SKILL.md`
 - `skills/review-engine/review-perspectives.md`

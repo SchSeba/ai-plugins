@@ -28,6 +28,7 @@ Before any work, read the project's best-practices, contribution guidelines, and
 ### 2. Pre-commit checks
 
 Unless the user passed `--no-verify`:
+
 - Run whatever lint, format, and test checks the project defines based on the guidelines discovered in Step 1. Do **not** assume specific targets — use the ones you found.
 - If any check fails, report the failure and stop. Do not commit broken code.
 
@@ -52,6 +53,7 @@ Unless the user passed `--no-verify`:
 Format: `<type>(<optional scope>): <subject>`
 
 **Rules:**
+
 - Present tense, imperative mood ("add feature" not "added feature").
 - First line under 72 characters.
 - Scope is optional — use when the change is clearly scoped to a module, package, or component.

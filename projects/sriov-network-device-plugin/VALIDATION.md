@@ -49,6 +49,7 @@ make image
 ```
 
 Builds a multi-stage Docker image:
+
 1. **Builder** — `golang:1.25-alpine`, compiles `sriovdp` binary.
 2. **DDP builder** — `golang:1.20-alpine3.16`, compiles `ddptool` (pinned Go
    version — do **not** bump).
@@ -100,6 +101,7 @@ Configuration is in `.golangci.yml` (v2 format).
 | `gci` | Import grouping: stdlib → external → project-internal |
 
 **Exclusions**:
+
 - Generated code uses `lax` exclusion mode.
 - Test files (`_test.go`) exclude: `dupl`, `goconst`, `lll`, `gosec`.
 - Directories excluded: `.github/`, `deployments/`, `docs/`.

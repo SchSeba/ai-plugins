@@ -315,6 +315,7 @@ After integrating all sub-agent changes:
 3. Run lint (if available). Address any new lint violations introduced by the refactoring.
 
 If any step fails:
+
 - Identify the specific change that caused the failure.
 - Fix it immediately.
 - Re-run verification.
@@ -341,6 +342,7 @@ All must pass. If any fail, go back to Phase 3 to fix the issues.
 Use the reusable review workflow in [../review-engine/SKILL.md](../review-engine/SKILL.md) and the perspective criteria in [../review-engine/review-perspectives.md](../review-engine/review-perspectives.md).
 
 When running the review for code-refactor, pass the following context:
+
 - The original refactoring request
 - The saved analysis from `docs/plans/code-refactor-analysis.md`
 - The saved plan from `docs/plans/code-refactor-plan.md`
@@ -348,6 +350,7 @@ When running the review for code-refactor, pass the following context:
 - Prior verification findings if this is a fix iteration
 
 The review MUST specifically check:
+
 1. **No functionality was broken.** Existing behavior is preserved.
 2. **Refactoring targets were addressed.** The planned improvements were made.
 3. **New code follows project conventions.** Style, patterns, and naming match the existing codebase.
@@ -430,6 +433,7 @@ Present a comprehensive summary to the user:
 ### When to Stop
 
 Stop iterating when:
+
 1. All planned rounds are complete and verified, OR
 2. The user's specified scope is fully addressed, OR
 3. A round exceeds 3 fix iterations (escalate to user), OR
@@ -438,6 +442,7 @@ Stop iterating when:
 ### Resuming Work
 
 If the refactoring is interrupted or the user wants to continue later:
+
 1. Read the saved plan from `docs/plans/code-refactor-plan.md`
 2. Check which rounds are complete (look at git history or saved progress)
 3. Resume from the next incomplete round

@@ -118,6 +118,7 @@ Before designing the plan, you MUST spawn multiple specialized investigation sub
 #### Agent A -- Language Best Practices
 
 Investigate the detected language(s) and report:
+
 - **Error handling conventions**: How does this project wrap/propagate errors? Sentinel errors? Custom error types?
 - **Naming conventions**: Variable, function, file naming patterns. Acronym casing.
 - **Interface patterns**: How are interfaces defined and consumed? Where are mocks generated?
@@ -127,6 +128,7 @@ Investigate the detected language(s) and report:
 #### Agent B -- Test Patterns
 
 Investigate the existing test infrastructure and report:
+
 - **Test framework**: Which testing libraries are used? (e.g., `testify`, `gomega`, `pytest`, `vitest`)
 - **Test organization**: Where do test files live? How are they named?
 - **Mock generation**: What mock library is used? How are mocks structured? Show example mock files.
@@ -137,6 +139,7 @@ Investigate the existing test infrastructure and report:
 #### Agent C -- Observability Patterns
 
 Investigate the project's observability setup and report:
+
 - **Logging library**: Which logger is used? (e.g., `slog`, `zap`, `klog`, `structlog`, `winston`)
 - **Log levels in use**: What log levels appear in the codebase? Show example log calls.
 - **Structured fields**: What key-value field names are standard? (e.g., `resource`, `operation`, `duration_ms`)
@@ -146,6 +149,7 @@ Investigate the project's observability setup and report:
 #### Agent D -- Architecture & Security
 
 Investigate the project architecture and report:
+
 - **Dependency injection patterns**: How are dependencies passed? Constructor injection? Globals?
 - **Layer architecture**: How are layers separated? (handler -> service -> repository, etc.)
 - **Data flow**: How does data move through the system for similar features?
@@ -204,6 +208,7 @@ One paragraph describing what will be implemented and why.
 #### Architecture Decisions
 
 If the task requires design choices, list each decision with:
+
 - **Decision**: What you chose
 - **Alternatives considered**: What else you considered
 - **Rationale**: Why this approach wins
@@ -211,6 +216,7 @@ If the task requires design choices, list each decision with:
 #### Files to Create or Modify
 
 For each file, specify:
+
 - **Path**: Exact file path
 - **Action**: Create / Modify / Delete
 - **Changes**: What specifically changes
@@ -221,6 +227,7 @@ Order files by dependency.
 #### Implementation Steps (Ordered)
 
 Numbered, concrete steps. Each step should:
+
 - Reference specific files and functions
 - Be small enough to complete in one focused effort
 - State its acceptance criterion
@@ -233,6 +240,7 @@ Numbered, concrete steps. Each step should:
 ##### Logging Plan
 
 For each new code path, specify:
+
 - **Log line description**: What event is being logged
 - **Log level**: DEBUG / INFO / WARN / ERROR (see level guidelines in Phase 2)
 - **Structured fields**: What key-value pairs to include (e.g., `resource_name`, `operation`, `duration_ms`, `error`)
@@ -243,6 +251,7 @@ For each new code path, specify:
 > **Skip this section if the project has no existing metrics infrastructure.** Check for prometheus, otel-metrics, or similar in the codebase first.
 
 For each new operation or resource, specify:
+
 - **Metric name**: Following project naming conventions (e.g., `myservice_operation_total`, `myservice_operation_duration_seconds`)
 - **Metric type**: Counter / Gauge / Histogram
 - **Labels/dimensions**: What dimensions to track (e.g., `status`, `method`, `resource_type`)
@@ -262,6 +271,7 @@ For each significant operation, specify:
 #### Unit Test Plan
 
 For each new or modified function, list specific test cases:
+
 - **Test name**: Descriptive name following project conventions
 - **Scenario**: What is being tested
 - **Setup**: What data/mocks are needed
@@ -274,6 +284,7 @@ Include edge cases: nil/empty inputs, zero values, boundary conditions, error pa
 #### E2E / Integration Test Plan
 
 For cross-component or user-facing changes:
+
 - **Test scenario**: End-to-end flow being validated
 - **Components involved**: Which layers participate
 - **Mocking strategy**: What external dependencies are mocked and how (HTTP mocks, DB test fixtures, fake implementations)
@@ -286,6 +297,7 @@ For cross-component or user-facing changes:
 #### Acceptance Criteria
 
 Checkable criteria derived from the request:
+
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] ...
@@ -308,13 +320,15 @@ docs/plans/{feature-name}-plan.md
 **The plan MUST be structured in two parts:**
 
 **Part 1: High-Level Summary** (1-3 paragraphs)
+
 - What will be implemented and why
 - Key architecture decisions
 - Languages, frameworks, and patterns involved
 - Investigation summary: aggregated findings from the 4 sub-agents (Step 1.3)
 - Acceptance criteria
 
-**Part 2: Deep Dive -- Per-File Changes**
+#### Part 2: Deep Dive -- Per-File Changes
+
 - For each file to create or modify, provide:
   - Exact file path
   - Action (Create / Modify / Delete)
@@ -347,6 +361,7 @@ After presenting the plan:
 ## Guidelines
 
 ### Planning Standards
+
 - **Thoroughness over speed.** A well-researched plan prevents wasted coding iterations.
 - **Be specific about file paths.** Vague references are not actionable.
 - **Always include observability and test plans.** These are not afterthoughts.

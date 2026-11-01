@@ -12,6 +12,7 @@ Use the text after the command name as the feature request. If your command runt
 If no request was provided, ask the user for the missing feature, bug fix, or change description before proceeding.
 
 Read and follow:
+
 - `skills/plan-feature/SKILL.md`
 
 Execute the full planning workflow: gather context, run multi-subagent investigation, and produce a detailed implementation plan at `docs/plans/{feature-name}-plan.md`.

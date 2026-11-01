@@ -10,10 +10,12 @@ Follow the `review-engine` skill from this plugin.
 Use the text after the command name as the review context. If your command runtime exposes `$ARGUMENTS`, treat it as that same value.
 
 Read and follow:
+
 - `skills/review-engine/SKILL.md`
 - `skills/review-engine/review-perspectives.md`
 
 Default behavior:
+
 - If the user supplied specific review context, use it.
 - Otherwise, review the current repository diff.
 

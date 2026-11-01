@@ -23,12 +23,12 @@ Before writing any test code, read the project's conventions and discover how it
 6. **Read `Makefile` / build scripts** — Understand the build, test, and lint commands available.
 7. **Read testing and linting configs** — Discover the testing framework, assertion library, and test runner from dependency/config files in the project.
 
-> **Rule:** If any of these files exist and contain instructions, you MUST follow them. Project-specific conventions always take precedence over the generic guidelines in this skill.
+   > **Rule:** If any of these files exist and contain instructions, you MUST follow them. Project-specific conventions always take precedence over the generic guidelines in this skill.
 
 8. **Identify the test framework** — Determine which testing framework and assertion library the project (or the specific package you are targeting) uses. Examine existing test files for import statements, test function signatures, and assertion patterns. You MUST use the same framework and style for the tests you generate.
 9. **Study existing test patterns** — Find existing test files in the project and study their naming conventions, directory structure, import style, assertion library, and setup/teardown approach.
 
-> **CodeGraph-first rule:** If CodeGraph MCP is configured and available, prefer `codegraph_explore` to discover the target's structure and dependencies. If the `.codegraph/` directory is missing, run `codegraph init` in the project root first. If CodeGraph is not available, **inform the user** and fall back to manual exploration.
+   > **CodeGraph-first rule:** If CodeGraph MCP is configured and available, prefer `codegraph_explore` to discover the target's structure and dependencies. If the `.codegraph/` directory is missing, run `codegraph init` in the project root first. If CodeGraph is not available, **inform the user** and fall back to manual exploration.
 
 Do **not** assume any specific testing framework or tool. Discover it from the project files.
 

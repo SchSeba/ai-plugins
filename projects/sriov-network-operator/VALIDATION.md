@@ -69,6 +69,7 @@ Override the builder: `IMAGE_BUILDER=podman make image`.
 ### `make generate`
 
 Runs `controller-gen` to regenerate:
+
 - `zz_generated.deepcopy.go` in `api/v1/`
 - Apply configuration types in `api/v1/applyconfiguration/`
 
@@ -168,6 +169,7 @@ CLUSTER_TYPE=openshift make test-api
 ```
 
 The `test-%` pattern automatically:
+
 - Sets up `envtest` (KUBEBUILDER_ASSETS)
 - Excludes `/mock` and `/pkg/client` directories
 - Generates a per-package coverage profile: `cover-<pkg>-<cluster-type>.out`
