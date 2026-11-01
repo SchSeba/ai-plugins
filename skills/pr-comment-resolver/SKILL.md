@@ -5,7 +5,7 @@ description: Resolve PR review comments one-by-one with user approval. Use when 
 
 # PR Comment Resolver
 
-Resolve pull request review comments interactively, one at a time, with explicit user approval before each change.
+Resolve pull request review comments interactively, one at a time, with explicit user approval before each change. For every handled comment, prepare an unpublished reply draft and publish it only after the full review is complete, the user confirms the latest changes were pushed, and the user separately approves that exact reply.
 
 ## Input Format
 
@@ -21,6 +21,12 @@ Parse `owner`, `repo`, and `pullNumber` from the link.
 ## Workflow
 
 > **CodeGraph-first rule:** If the CodeGraph MCP server is configured and available, use `codegraph_explore` throughout this workflow to understand the code context around review comments — callers, callees, and blast radius of the symbols being discussed. This helps craft better fixes by understanding the full impact. If CodeGraph is available but the project has no `.codegraph/` directory, run `codegraph init` in the project root first to build the initial graph. If CodeGraph is not available, **inform the user** and fall back to manual file reading.
+
+## Reply safeguards
+
+Apply the reply workflow below to every PR, regardless of its owner, repository, or optional local folder. For each actionable comment handled in Step 4, keep a clearly labeled, unpublished proposed reply tied to the original PR and comment. Refresh the draft after the user decides and any approved change is validated so it describes the actual disposition and outcome.
+
+Never publish a reply or otherwise answer a review comment during retrieval, filtering, comment-by-comment review, code changes, validation, final summary, or knowledge persistence. A draft shown to the user is not a published answer. Code-change approval in Step 4 and reply approval in Step 8 are separate decisions. Publish a reply only through Step 8 after both completion gates and that reply's individual approval.
 
 ### Step 0 — Read project knowledge (MANDATORY — Do This FIRST)
 
@@ -178,7 +184,7 @@ If GitHub access becomes available, consider re-fetching to verify nothing was m
 
 ### Step 4 — Process comments ONE BY ONE
 
-For **each** comment, present exactly this format and **stop to wait for user input**:
+For each actionable comment, present this format, append the reply-draft block below, and stop to wait for user input.
 
 ---
 
@@ -199,6 +205,13 @@ Approve this change? (yes / no / skip)
 ---
 
 **CRITICAL: Do NOT proceed to the next comment until the user responds.**
+
+**4. Proposed reply (draft — not published)**
+- **Original target:** retain the PR URL and original comment URL and ID. For an inline review comment, also retain its review-thread ID when available. For a general PR comment, retain its original comment URL and ID.
+- **Handling status:** `awaiting code-change decision` until the user decides; update it after processing to reflect the actual result.
+- **Draft reply:** “I am reviewing this concern. I will update this draft after deciding whether to make the change and checking any approved change.”
+
+This is a local draft, not an answer to the reviewer. Do not claim a change is complete before it is applied and validation is known. The yes/no/skip prompt above approves only the code change, never the reply. Keep the draft and original target identity together.
 
 ### Step 5 — Apply approved change and validate
 
@@ -225,7 +238,7 @@ After user approves:
    - Ran: <exact command 1>  →  ✅ PASS / ❌ FAIL
    - Ran: <exact command 2>  →  ✅ PASS / ❌ FAIL
    - ...
-   
+
    Notes:
    - <any commands that were adapted from defaults, and why>
    - <any failures unrelated to this change>
@@ -234,7 +247,17 @@ After user approves:
 4. If the validation fails **due to the change**, fix the issues and re-run until clean. If a failure is **unrelated** to the change (pre-existing issue), note it but proceed.
 5. Show the user the result, then move to the next comment.
 
-If the user says **no** or **skip**, move to the next comment without changing anything.
+If the user says **no** or **skip**, make no code change. Update the reply draft as described below before moving to the next comment.
+
+#### Refresh the reply draft
+
+Update each comment’s draft after the user’s decision and any validation are complete:
+
+- If addressed, state the actual change and relevant validation result.
+- If declined or skipped, state that no change was made and give the actual reason or user-requested disposition.
+- If the work is incomplete or validation failed, state that accurately; do not describe it as fixed.
+
+Keep the original comment identity with the draft. Do not publish it here.
 
 ### Step 6 — Final summary
 
@@ -243,6 +266,7 @@ After all comments are processed, show:
 - How many were skipped
 - How many were filtered out in Step 2b (resolved, superseded, etc.)
 - Remaining validation errors (if any unrelated ones exist)
+- Each handled comment’s reply draft and handling status; keep all drafts unpublished until Step 8.
 
 #### Optional: Fresh fetch verification
 
@@ -253,7 +277,7 @@ All approved fixes have been applied. Would you like me to re-fetch PR comments
 from GitHub to verify no unresolved comments were missed?
 ```
 
-This is especially recommended when the original comments were retrieved from an exported document (Source 3).
+This is especially recommended when the original comments were retrieved from an exported document (Source 3). If the re-fetch finds new actionable comments, return to Step 2, process them through Steps 3–5, create and refresh their reply drafts, and update the final summary; do not proceed to knowledge persistence or reply confirmation until they are handled.
 
 **DO NOT push the branch. DO NOT run `git push`.**
 
@@ -308,11 +332,31 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 4. **Persist after all fixes are applied.** Write knowledge files after all approved changes pass validation, so the content reflects confirmed patterns.
 5. **Include a timestamp header** for each entry so it's clear when the knowledge was captured.
 
+### Step 8 — Approve and publish replies
+
+Run this step after the Step 6 final summary and all Step 7 knowledge persistence are complete. If no actionable comment entered Step 4, there are no reply drafts and this step ends without a push-confirmation request or comment write.
+
+#### Push confirmation gate
+
+After the full review is complete, ask the user to explicitly confirm that the latest reviewed changes have been pushed. This includes any relevant edits made during knowledge persistence. If no changes were made, the user may explicitly confirm that the reviewed state is current and there is nothing to push. A confirmation given before this step, before later comments were processed, or before later fixes does not satisfy the gate; ask again after the final summary. Never infer confirmation from code-change approval, branch or remote state, or a detected commit, and never push on the user’s behalf. Until the gate is met, leave every draft pending and do not answer any comment.
+
+#### Separate approval for each reply
+
+After the push gate is met:
+
+1. Present only the next comment, its original quote and URL/ID/thread identity, its handling status, and the exact current reply draft. Ask whether the user approves that exact reply to that exact comment. Wait for the answer before writing or presenting the next draft. A general or blanket approval does not approve any individual reply.
+2. Publish only after an explicit approval of the exact text. Use an available supported capability that replies in the original inline review thread or original general-comment context. Do not substitute an unrelated top-level comment. If the capability or target identity is unavailable or uncertain, leave the draft pending and explain why.
+3. Post exactly the approved text. If the text changes after it was shown, present the revised exact text and get fresh approval. If a write result is uncertain, verify whether it posted before considering a retry; do not blindly send a duplicate.
+4. After each answer, report whether that reply was posted, declined, skipped, or left pending. A no/skip response publishes nothing; only after receiving it may you move to the next comment. Silence means wait. Obtain a separate explicit decision for every remaining reply.
+5. If the user requests or approves a new code fix after push confirmation, stop the reply sequence. Apply and validate the fix through the normal review steps, refresh affected drafts, complete the final summary and knowledge persistence, then obtain fresh confirmation that the latest changes were pushed before resuming. Any changed reply text also requires fresh approval.
+
+Use the supported integration’s reply operation for the matching original target; do not invent an API or claim success without a confirmed write. Do not resolve threads automatically. At completion, report posted, declined, skipped, and pending replies accurately. See [reply workflow acceptance scenarios](reply-workflow-scenarios.md).
+
 ## Important Rules
 
 - If `repo-folder` is provided, `cd` into it before making changes.
 - Always read the file before editing to get current content. If CodeGraph is available, use `codegraph_explore` to understand the surrounding code context (callers, callees, impact) before making changes.
-- Never batch multiple comment changes together — one at a time only.
+- Never batch multiple code changes or comment replies together — obtain separate approval and process one item at a time.
 - Never push to remote.
 - Always add docstrings to new functions.
 - Use `--signoff` on any commits, never add `Made-with: Cursor`.
