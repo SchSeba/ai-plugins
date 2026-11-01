@@ -375,7 +375,7 @@ Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kuber
 
 ### pr-comment-resolver
 
-Interactively resolves PR review comments one at a time for any repository. For each actionable comment, the agent shows the code, the reviewer's feedback, a suggested fix, and a clearly labeled unpublished reply draft tied to the original comment — then waits for your approval before applying a fix. It refreshes each draft to describe the actual outcome. Replies remain unpublished until the full review and knowledge persistence are complete, you confirm the latest changes were pushed, and you approve each exact reply individually.
+Interactively resolves PR review comments one at a time for any repository. The agent paginates inline and general PR comments through all available pages before assessing requests; if complete history cannot be retrieved, it reports the missing pages or endpoint and asks for context before proposing a fix. Before filtering older discussion, it checks relevant comments—including resolved or outdated comments where available—retains their status and rationale, and reassesses each current request against the present code. It records a reasoned valid, invalid, or needs-context disposition and expected behavior before proposing a fix; missing or ambiguous evidence is surfaced for context rather than assumed. For API-field renames, it traces dependent functions, helpers, callers, tests, fixtures, and documentation, records coordinated updates and reasons for intentional old-name references, then audits affected references after implementation. After an approved change, it runs applicable project checks and a focused behavior check against that expectation before claiming resolution. For each comment, the agent records the original target and handling status while leaving the reply unset. Only after a relevant change is fully applied, present in the final PR head-to-base change set, and supported by validation and focused behavior evidence does it draft a concise, factual explanation of that change. Rebased or amended fixes in existing commits remain eligible with a clean worktree; evidence is rechecked if rebasing changes relevant content or validation state. If no checked resolution exists, it tells you that there is no applied resolution to report and leaves the reply unpublished and unset. Eligible replies remain unpublished until the full review and knowledge persistence are complete, you confirm the latest reviewed PR head was pushed, and you approve each exact reply individually. The [acceptance scenarios](skills/pr-comment-resolver/reply-workflow-scenarios.md) include a repeatable local documentation check: `python3 skills/pr-comment-resolver/check_reply_workflow.py`.
 
 **Usage:**
 
@@ -387,16 +387,19 @@ Interactively resolves PR review comments one at a time for any repository. For 
 /pr-comment-resolver my-project https://github.com/owner/repo/pull/42
 ```
 
+Before compatibility handling, the resolver compares the PR with an identified authoritative main/master or documented production baseline and records revision/file evidence. Proven production contracts retain warranted protection; PR-only additions removed before publication need no compatibility shim, legacy-name preservation, or protobuf-number reservation solely for compatibility. Missing baseline evidence requires context. Before any rebase, it shows the actual applied Git changes, current head, target revision and operation, then waits for separate explicit rebase approval. Decline/skip leaves history unchanged; silence means wait. Changed candidate changes or target invalidate approval. Code-change approval, latest-push confirmation and reply approval remain separate gates.
+
 **Workflow:**
 
-1. Fetches all unresolved review comments from the PR
-2. Filters to actionable comments (skips resolved threads and pure praise)
-3. Shows a numbered summary of all actionable comments
-4. Presents each comment one-by-one with the code snippet, reviewer feedback, suggested fix, and a clearly labeled unpublished reply draft tied to its original target
-5. Waits for your approval (`yes` / `no` / `skip`) before applying each change
-6. Runs validation after each approved change and refreshes the reply draft to state the actual disposition and outcome
-7. Shows a final summary of addressed vs. skipped comments and their unpublished reply drafts
-8. After the full review and knowledge persistence, waits for your confirmation that the latest changes were pushed, then presents each reply one at a time for separate approval before publishing
+1. Fetches every available page of inline review comments and general PR comments; if pagination is incomplete, reports the missing endpoint or pages and asks for context before assessing requests
+2. Before filtering resolved, outdated, or superseded comments, checks earlier inline and general discussion about the same or nearby code area; retains relevant comment identities, statuses, quotes, and rationale
+3. Reassesses each current request against the prior rationale and present code, recording a reasoned **valid**, **invalid**, or **needs context** disposition; valid requests include expected behavior and regression cases, while missing context is requested before a fix is proposed
+4. Filters and summarizes actionable requests while preserving relevant older discussion as context
+5. Records each request's original identity, history assessment, expected behavior, and handling status; leaves its reply unset
+6. Waits for your approval (`yes` / `no` / `skip`) before applying a change for a valid request
+7. Runs applicable project validation and a focused behavior check against the expected behavior; rebased fixes in existing commits remain eligible with a clean worktree, and evidence is rechecked if relevant content or validation changes
+8. Reports **No applied resolution to report** for invalid, context-blocked, declined, skipped, incomplete, reverted, unchecked, or behaviorally unproven changes, without drafting a status reply
+9. Shows eligible exact replies and recorded evidence in the final summary; after review and knowledge persistence, asks for latest-push confirmation and presents each eligible reply one at a time for separate approval before publishing
 
 ---
 
@@ -516,6 +519,7 @@ ai-plugins/
     │   └── SKILL.md
     ├── pr-comment-resolver/
     │   ├── SKILL.md
+    │   ├── check_reply_workflow.py
     │   └── reply-workflow-scenarios.md
     ├── review-engine/
     │   ├── SKILL.md
