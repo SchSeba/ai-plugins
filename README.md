@@ -375,7 +375,7 @@ Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kuber
 
 ### pr-comment-resolver
 
-Interactively resolves PR review comments one at a time. For each comment, the agent shows the code, the reviewer's feedback, and a suggested fix — then waits for your approval before applying it.
+Interactively resolves PR review comments one at a time for any repository. For each actionable comment, the agent shows the code, the reviewer's feedback, a suggested fix, and a clearly labeled unpublished reply draft tied to the original comment — then waits for your approval before applying a fix. It refreshes each draft to describe the actual outcome. Replies remain unpublished until the full review and knowledge persistence are complete, you confirm the latest changes were pushed, and you approve each exact reply individually.
 
 **Usage:**
 
@@ -392,10 +392,11 @@ Interactively resolves PR review comments one at a time. For each comment, the a
 1. Fetches all unresolved review comments from the PR
 2. Filters to actionable comments (skips resolved threads and pure praise)
 3. Shows a numbered summary of all actionable comments
-4. Presents each comment one-by-one with the code snippet, reviewer feedback, and suggested fix
+4. Presents each comment one-by-one with the code snippet, reviewer feedback, suggested fix, and a clearly labeled unpublished reply draft tied to its original target
 5. Waits for your approval (`yes` / `no` / `skip`) before applying each change
-6. Runs validation after each approved change
-7. Shows a final summary of addressed vs. skipped comments
+6. Runs validation after each approved change and refreshes the reply draft to state the actual disposition and outcome
+7. Shows a final summary of addressed vs. skipped comments and their unpublished reply drafts
+8. After the full review and knowledge persistence, waits for your confirmation that the latest changes were pushed, then presents each reply one at a time for separate approval before publishing
 
 ---
 
@@ -505,7 +506,8 @@ ai-plugins/
     ├── kubernetes-pre-push/
     │   └── SKILL.md
     ├── pr-comment-resolver/
-    │   └── SKILL.md
+    │   ├── SKILL.md
+    │   └── reply-workflow-scenarios.md
     ├── review-engine/
     │   ├── SKILL.md
     │   └── review-perspectives.md
