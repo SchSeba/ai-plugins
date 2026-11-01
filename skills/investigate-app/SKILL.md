@@ -10,6 +10,7 @@ spawning parallel specialist sub-agents to review multiple dimensions simultaneo
 and producing a prioritized, actionable improvement plan.
 
 Use this skill when:
+
 - You want to review production behavior for bugs, performance regressions, or stability issues
 - You need a structured analysis across multiple dimensions (security, observability, UX, cost, etc.)
 - You want to track recurring issues across investigation sessions via memory
@@ -171,17 +172,20 @@ and let each sub-agent report "no findings" if the perspective does not apply.
 ### Step 2.2: Collect Jaeger Traces (if endpoint provided)
 
 1. **Query the Jaeger API** to discover available services:
-   ```
+
+   ```text
    GET http://{jaeger-endpoint}/api/services
    ```
 
 2. **For each service**, retrieve recent traces:
-   ```
+
+   ```text
    GET http://{jaeger-endpoint}/api/traces?service={service-name}&limit=100&lookback=2h
    ```
 
 3. **Retrieve the service dependency graph**:
-   ```
+
+   ```text
    GET http://{jaeger-endpoint}/api/dependencies?endTs={now}&lookback=7200000
    ```
 
@@ -252,6 +256,7 @@ For each applicable perspective, construct a task prompt using the **Sub-Agent P
 defined in [analysis-perspectives.md](analysis-perspectives.md).
 
 Each sub-agent receives:
+
 1. Its complete perspective criteria (from analysis-perspectives.md)
 2. The collected pod logs (all sources)
 3. The collected Jaeger trace data (if available)
@@ -264,6 +269,7 @@ Spawn all applicable sub-agents in a single call so they run in parallel.
 Use read-only sub-agents since they only analyze data, not modify code.
 
 **Important considerations:**
+
 - If sub-agent spawning is unavailable or fails, fall back to sequential in-context analysis using the same perspective criteria.
 - Set appropriate timeouts — trace analysis may take longer than log-only analysis.
 - Each sub-agent should return structured findings in the required output format.
@@ -285,11 +291,13 @@ Collect all findings from all sub-agents into a single list.
 ### Step 5.2: Deduplicate
 
 When two or more perspectives flag the same underlying issue:
+
 1. Keep the finding with the highest severity.
 2. Note which perspectives identified it (increases confidence).
 3. Merge the evidence from all perspectives into the surviving finding.
 
 **Deduplication signals:**
+
 - Same log line or trace span referenced by multiple perspectives
 - Same root cause described in different terms
 - Same recommended fix from different angles
@@ -297,6 +305,7 @@ When two or more perspectives flag the same underlying issue:
 ### Step 5.3: Cross-Reference with Memory
 
 For each finding, check against the known issues list from Phase 3:
+
 - **Recurring issue**: Flag with `⚠️ RECURRING` — this was found before and may indicate the fix was incomplete or reverted.
 - **New issue**: No prior record in memory.
 - **Resolved issue**: Previously known issue that no longer appears — note as resolved.
@@ -386,6 +395,7 @@ End the plan with aggregate statistics:
 ### Step 7.1: Store Findings
 
 For each finding at MEDIUM severity or above, store it in memory with:
+
 - The finding title and severity
 - The evidence (key log lines or trace data)
 - The recommended fix
@@ -395,6 +405,7 @@ For each finding at MEDIUM severity or above, store it in memory with:
 ### Step 7.2: Store the Improvement Plan
 
 Store a summary of the improvement plan including:
+
 - Total finding counts by severity
 - The P0 and P1 items specifically
 - Any recurring issues and their recurrence count
@@ -402,6 +413,7 @@ Store a summary of the improvement plan including:
 ### Step 7.3: Update Resolved Issues
 
 For any issues previously in memory that were NOT found in this investigation:
+
 - Update their memory entry to note they appear resolved
 - Include the date they were last seen and the date they were confirmed resolved
 

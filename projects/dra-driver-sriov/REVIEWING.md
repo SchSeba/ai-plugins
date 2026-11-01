@@ -91,7 +91,7 @@ the `k8snetworkplumbingwg/dra-driver-sriov` repository.
 ### Testing
 
 - **Unit test coverage**: New logic must have tests. The project uses Ginkgo v2
-  + Gomega exclusively — do not introduce `testing.T`-only tests.
+  - Gomega exclusively — do not introduce `testing.T`-only tests.
 - **Tests in the same commit**: Unit tests belong in the same commit as the code
   they test. Do not defer tests to a follow-up PR.
 - **Mock usage**: Tests should use the `mockgen`-generated mocks from `mock/`
@@ -166,7 +166,7 @@ the `k8snetworkplumbingwg/dra-driver-sriov` repository.
 
 ### Expected format
 
-```
+```text
 Change summary
 
 More detailed explanation of your changes: Why and how.

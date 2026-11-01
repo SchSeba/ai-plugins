@@ -34,7 +34,7 @@ If no PR link or number was provided, ask the user for the pull request URL befo
 
 3. **Render the report** using four sequential sections instead of the default flat format. Each section acts as a self-contained review from that engineering role:
 
-   ```
+   ```text
    ## PR Review: <PR title>
 
    **Verdict**: APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION

@@ -9,7 +9,7 @@ Resolve pull request review comments interactively, one at a time, with explicit
 
 ## Input Format
 
-```
+```text
 <repo-folder(optional)> <pull-request-link>
 ```
 
@@ -46,7 +46,7 @@ Before fetching comments, retrieve the PR metadata to identify the **head branch
 
 Use the GitHub MCP `pull_request_read` tool:
 
-```
+```text
 server: user-github
 toolName: pull_request_read
 arguments:
@@ -57,6 +57,7 @@ arguments:
 ```
 
 Extract from the response:
+
 - `head.ref` — the PR branch name
 - `base.ref` — the target branch name
 
@@ -68,7 +69,7 @@ Use the following **fallback chain** — try each source in order and stop at th
 
 **Source 1 — GitHub MCP (preferred):**
 
-```
+```text
 server: user-github
 toolName: pull_request_read
 arguments:
@@ -106,7 +107,7 @@ If MCP is unavailable and `gh` is unauthenticated, the user may provide an expor
 
 If none of the above sources work, tell the user exactly what is blocked:
 
-```
+```text
 I could not retrieve PR comments:
 - GitHub MCP: <reason it failed or "not configured">
 - gh CLI: <reason it failed or "not authenticated">
@@ -125,11 +126,13 @@ Review every active unresolved comment, including bot comments (e.g., Bugbot, Co
 #### Classification rules
 
 **Actionable — keep:**
+
 - Comments that explicitly request a code change.
 - Comments that raise a concern implying a change is needed.
 - **Reviewer questions that imply a requested change** — e.g., "Should this be handling the error case?" or "Wouldn't it be better to use X here?" are actionable if they clearly suggest the current code is wrong or suboptimal. Classify these as actionable and present the implied change to the user.
 
 **Not actionable — discard:**
+
 - Resolved threads (`isResolved: true`).
 - Pure praise / acknowledgement with no requested change.
 - Genuine questions seeking clarification that do NOT imply a code change (e.g., "What does this constant represent?" with no suggestion to rename or document it).
@@ -152,7 +155,7 @@ Fix only comments you agree with. If you disagree or are unsure, explain that cl
 
 Before presenting the actionable list, provide a brief summary of what was filtered out and why:
 
-```
+```text
 Filtered comments:
 - X resolved threads (skipped — already resolved)
 - Y praise/acknowledgement comments (skipped — no change requested)
@@ -170,14 +173,14 @@ Show the user a numbered list of all actionable comments (one line each) so they
 
 **If no actionable comments remain**, say so clearly:
 
-```
+```text
 No unresolved actionable review comments found on this PR.
 All comments are either resolved, praise/acknowledgement, or superseded.
 ```
 
 Do not imply there may be more comments or ask the user to double-check unless you used an exported document (Source 3), in which case add:
 
-```
+```text
 Note: Comments were retrieved from an exported document, not the live API.
 If GitHub access becomes available, consider re-fetching to verify nothing was missed.
 ```
@@ -188,15 +191,17 @@ For each actionable comment, present this format, append the reply-draft block b
 
 ---
 
-**Comment N of M**
+#### Comment N of M
 
 **1. Code snippet** (the relevant code from the current branch, with file path and line numbers)
 
-**2. Reviewer comment**
+##### 2. Reviewer comment
+
 > Quoted reviewer text
 
-**3. Suggested change**
-```
+##### 3. Suggested change
+
+```text
 Your proposed code change
 ```
 
@@ -206,7 +211,8 @@ Approve this change? (yes / no / skip)
 
 **CRITICAL: Do NOT proceed to the next comment until the user responds.**
 
-**4. Proposed reply (draft — not published)**
+##### 4. Proposed reply (draft — not published)
+
 - **Original target:** retain the PR URL and original comment URL and ID. For an inline review comment, also retain its review-thread ID when available. For a general PR comment, retain its original comment URL and ID.
 - **Handling status:** `awaiting code-change decision` until the user decides; update it after processing to reflect the actual result.
 - **Draft reply:** “I am reviewing this concern. I will update this draft after deciding whether to make the change and checking any approved change.”
@@ -233,7 +239,7 @@ After user approves:
 
 3. Present a **validation summary** after each change:
 
-   ```
+   ```text
    Validation after Comment N:
    - Ran: <exact command 1>  →  ✅ PASS / ❌ FAIL
    - Ran: <exact command 2>  →  ✅ PASS / ❌ FAIL
@@ -262,6 +268,7 @@ Keep the original comment identity with the draft. Do not publish it here.
 ### Step 6 — Final summary
 
 After all comments are processed, show:
+
 - How many comments were addressed
 - How many were skipped
 - How many were filtered out in Step 2b (resolved, superseded, etc.)
@@ -272,7 +279,7 @@ After all comments are processed, show:
 
 If GitHub API access is available (MCP or `gh`), suggest re-fetching PR comments to verify no new or missed comments exist:
 
-```
+```text
 All approved fixes have been applied. Would you like me to re-fetch PR comments
 from GitHub to verify no unresolved comments were missed?
 ```
@@ -306,12 +313,14 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 #### What to persist
 
 **In `VALIDATION.md`:**
+
 - Every validation command run during fix verification (exact `make` targets or equivalent).
 - The correct order to run them.
 - Any targets requiring special flags, environment variables, or build tags.
 - Any CI-only validations that cannot be run locally — note as "CI-only, skip locally".
 
 **In `CODING.md`:**
+
 - Reviewer-requested coding patterns (e.g., "always use `errors.Wrap` instead of `fmt.Errorf` for wrapping").
 - Common review findings for this project (e.g., "reviewers consistently flag missing nil checks on interface methods").
 - Architecture conventions enforced during review (e.g., "all public functions must have godoc comments").
@@ -319,6 +328,7 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 - Any corrections or preferences expressed by reviewers that apply broadly.
 
 **In `REVIEWING.md`:**
+
 - What kinds of issues reviewers consistently catch for this project.
 - Preferred fix approaches (e.g., "reviewers prefer `errors.Wrap` over `fmt.Errorf` for wrapping").
 - Coding standards enforced during review (e.g., "all public functions must have godoc comments").

@@ -10,6 +10,7 @@ Follow the `explain-pr` skill from this plugin.
 Use the text after the command name as the input. If your command runtime exposes `$ARGUMENTS`, treat it as that same value.
 
 Read and follow:
+
 - `skills/explain-pr/SKILL.md`
 
 If extra input is provided, pass it as additional context to the skill — the user may want the explanation focused on a specific aspect (e.g. "focus on the API changes" or "explain for a frontend engineer").

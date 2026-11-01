@@ -7,6 +7,7 @@ This variant focuses on **code reviewer** behavior — posting constructive inli
 ## When to Use
 
 Use this review type when:
+
 - The dev-task engine is reviewing a PR authored by an external contributor
 - The agent is acting as a code reviewer on someone else's work
 - A PR was assigned for review and needs feedback
@@ -25,6 +26,7 @@ Use this review type when:
 ### Inline Comments
 
 Post specific, actionable inline comments on the PR using `devtask_pr_review_comment`. Each comment should:
+
 - Reference the specific file and line
 - Explain what's wrong and why
 - Suggest a concrete fix when possible

@@ -178,7 +178,7 @@ the `k8snetworkplumbingwg/sriov-network-operator` repository.
 
 The project follows a conventional commit format:
 
-```
+```text
 Change summary
 
 More detailed explanation of your changes: Why and how.

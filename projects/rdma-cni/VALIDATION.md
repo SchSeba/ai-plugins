@@ -45,6 +45,7 @@ make image
 ```
 
 Builds a multi-stage Docker image:
+
 1. **Builder stage**: `golang:1.26-alpine` — installs `build-base`, runs
    `make clean && make build`.
 2. **Runtime stage**: `alpine:3` — copies the binary and `images/entrypoint.sh`.

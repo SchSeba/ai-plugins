@@ -150,6 +150,7 @@ make test-image
 ```
 
 Builds the container image, then runs `images/image_test.sh` which:
+
 1. Runs the image with `--no-sleep` and a temporary output directory.
 2. Verifies the `ib-sriov` binary was copied to the output directory.
 3. Verifies the binary is non-empty.
@@ -246,6 +247,7 @@ make tests      # lint + hadolint + shellcheck + test + test-image
 ```
 
 This is the most comprehensive local check. It runs:
+
 1. `make lint` — golangci-lint
 2. `make hadolint` — Dockerfile linting
 3. `make shellcheck` — Shell script linting

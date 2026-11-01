@@ -167,7 +167,7 @@ var logFatal = func(msg string, args ...any) {
 
 The `.golangci.yml` enforces import ordering via `goimports` with local prefix:
 
-```
+```text
 github.com/k8snetworkplumbingwg/sriov-network-metrics-exporter
 ```
 

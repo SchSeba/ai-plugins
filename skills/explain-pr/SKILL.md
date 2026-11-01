@@ -28,11 +28,13 @@ Before any analysis, read the project's best-practices, contribution guidelines,
 Collect PR metadata and diff content. Use whichever sources are available — prefer richer data when possible.
 
 **PR metadata (preferred):** Use the GitHub MCP server or repository management tools to fetch:
+
 - Title, body / description
 - Labels, base branch → head branch
 - Linked issues or references mentioned in the body
 
 If PR metadata tools are unavailable (e.g. working inside a plain worktree), fall back to:
+
 - `git log` between the merge-base and HEAD for commit messages
 - Branch name for hints about purpose
 
@@ -54,11 +56,14 @@ Run a diff between the base branch and the PR head.
 Write a structured explanation with the following sections. Keep language accessible — aim for a teammate who knows the project but has not seen this PR yet.
 
 #### 1. Overview
+
 - One or two sentences: what is the main purpose of this PR?
 - What problem does it solve, or what feature does it add?
 
 #### 2. Key Changes
+
 Group changes into whichever categories apply:
+
 - **Features** — new capabilities or behaviours
 - **Fixes** — bugs or regressions addressed
 - **Refactors** — structural improvements without behaviour change
@@ -67,6 +72,7 @@ Group changes into whichever categories apply:
 For each item, give a brief plain-language description. Reference file paths where helpful.
 
 #### 3. Technical Details
+
 - Architecture or design decisions (e.g. new abstractions, patterns chosen)
 - Dependencies added, removed, or bumped
 - Configuration or environment changes
@@ -75,11 +81,13 @@ For each item, give a brief plain-language description. Reference file paths whe
 Omit this section if the PR is simple enough that Key Changes covers everything.
 
 #### 4. Impact
+
 - Which subsystems, services, or modules are affected?
 - Potential side effects or edge cases
 - Performance implications (if discernible from the diff)
 
 #### 5. Testing
+
 - What should a reviewer verify manually?
 - What should CI cover?
 - Are there new or modified tests? Summarise their coverage briefly.

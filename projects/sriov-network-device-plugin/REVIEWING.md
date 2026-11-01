@@ -180,7 +180,8 @@ the `k8snetworkplumbingwg/sriov-network-device-plugin` repository.
 ## Commit Structure Expectations
 
 - **Descriptive commit messages** — Follow the format:
-  ```
+
+  ```text
   Change summary
 
   More detailed explanation of changes.
@@ -188,6 +189,7 @@ the `k8snetworkplumbingwg/sriov-network-device-plugin` repository.
 
   Fixes #NUMBER
   ```
+
 - **Self-contained commits** — Code changes and their tests belong in the same
   commit.
 - **Topic branches** — Branch names should use `dev/` prefix per

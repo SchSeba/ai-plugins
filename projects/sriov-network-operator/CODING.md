@@ -125,7 +125,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 The project uses `goimports` with local prefix ordering configured in
 `.golangci.yml`:
 
-```
+```yaml
 local-prefixes:
   - github.com/k8snetworkplumbingwg/sriov-network-operator
 ```

@@ -53,6 +53,7 @@ Formatters: `gofmt` and `goimports` (with local prefix
 `github.com/k8snetworkplumbingwg/sriov-cni`).
 
 Exclusions:
+
 - `vendor/`, `.github/`, `docs/`, `images/` directories are excluded
 - Test files (`_test.go`) relax `mnd`, `gosec`, `dupl`, `lll`, `goconst`
 - Standard error handling and comment presets are excluded
@@ -70,6 +71,7 @@ CGO_ENABLED=0 go build -tags no_openssl -o build/sriov ./cmd/sriov/
 ```
 
 Key flags:
+
 - `CGO_ENABLED=0` — static binary, no C dependencies
 - `-tags no_openssl` — avoids OpenSSL dependency
 - Output: `build/sriov`
@@ -107,6 +109,7 @@ sudo make test-integration
 ```
 
 The integration tests:
+
 1. Auto-download `bash_unit` to `bin/bash_unit`
 2. Build a mocked version of the CNI binary (`test/integration/sriov_mocked.go`)
 3. Create a fake sysfs filesystem and mock netlink library
@@ -146,6 +149,7 @@ docker build -t ghcr.io/k8snetworkplumbingwg/sriov-cni -f Dockerfile .
 ```
 
 The Dockerfile is a multi-stage build:
+
 - **Builder**: `golang:1.25-alpine` — runs `make clean && make build`
 - **Runtime**: `alpine:3` — copies `build/sriov` and `images/entrypoint.sh`
 

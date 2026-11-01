@@ -12,6 +12,7 @@ Use the text after the command name as the refactoring scope. If your command ru
 If no scope was provided, default to "full project" — comprehensive refactoring coverage of the entire codebase.
 
 Read and follow:
+
 - `skills/code-refactor/SKILL.md`
 - `skills/code-refactor/refactor-perspectives.md` (index — maps file patterns to domain checklists)
 - Domain-specific checklists under `skills/code-refactor/perspectives/*.md` — load on-demand based on which domains are present in the target project

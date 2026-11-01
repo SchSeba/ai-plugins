@@ -77,6 +77,7 @@ The project uses `controller-gen` for CRD and deepcopy generation, and
 in `mock/` directories are auto-generated.
 
 Mock generation uses `//go:generate` directives in source files:
+
 - `pkg/host/host.go` → `pkg/host/mock/mock_host.go`
 - `pkg/cni/interface.go` → `pkg/cni/mock/mock_cni.go`
 - `pkg/devicestate/interface.go` → `pkg/devicestate/mock/mock_devicestate.go`

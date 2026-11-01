@@ -10,11 +10,13 @@ Follow the `investigate-app` skill from this plugin.
 Use the text after the command name as the input. If your command runtime exposes `$ARGUMENTS`, treat it as that same value.
 
 Parse the input for:
+
 - **kubectl log commands** — one or more `kubectl logs ...` commands (required)
 - **`--jaeger <endpoint>`** — Jaeger UI endpoint for trace analysis (optional)
 - **`--services <service-list>`** — comma-separated service names in Jaeger (optional)
 
 Read and follow:
+
 - `skills/investigate-app/SKILL.md`
 - `skills/investigate-app/analysis-perspectives.md`
 

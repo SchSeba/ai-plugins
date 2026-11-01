@@ -12,6 +12,7 @@ Use the text after the command name as the plan, design, or topic to grill. If y
 If no input was provided, ask the user what plan, design, or architecture decision they want grilled before proceeding.
 
 Read and follow:
+
 - `skills/grill-me/SKILL.md`
 - `skills/review-engine/review-perspectives.md`
 

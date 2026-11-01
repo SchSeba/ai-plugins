@@ -1,6 +1,6 @@
 # review-change Workflow
 
-```
+```text
 review-change [project-path]
 ```
 
@@ -16,14 +16,18 @@ After completing the steps below, use the shared review workflow from [../review
    - If `project-path` is provided, `cd` into it.
    - Otherwise, use the current workspace root.
 2. Verify this is a git repository:
+
    ```bash
    git rev-parse --is-inside-work-tree
    ```
+
 3. **Initialize CodeGraph (if available):** If the CodeGraph MCP server is configured, check for a `.codegraph/` directory in the project root. If it does not exist, run `codegraph init` to build the initial code graph. CodeGraph provides semantic code intelligence — use `codegraph_explore` throughout the review to understand call paths, blast radius, and symbol relationships instead of manually reading files. If CodeGraph is not available, **inform the user** and fall back to manual exploration.
 4. Identify the base branch for comparison:
+
    ```bash
    git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || echo "origin/main"
    ```
+
    Use the result as `{base}`.
 
 ## Step 2: Gather the Diff
@@ -57,6 +61,7 @@ git log {base}..HEAD --oneline
 ```
 
 Check for:
+
 - **WIP/fixup commits** (`WIP`, `fixup!`, `squash!`, `temp`)
 - **Meaningful messages** — do they explain *why*, not just *what*?
 - **Logical structure** — one giant commit vs many tiny commits
@@ -66,6 +71,7 @@ Flag commit quality issues as **low-severity**.
 ### 3b: Understand Intent
 
 Look for clues about what the change is trying to accomplish:
+
 - Current branch name (e.g., `feature/add-auth`, `fix/null-pointer`)
 - Recent commit messages
 - If CodeGraph is available, use `codegraph_explore` to understand the surrounding code context for changed symbols — callers, callees, and blast radius — to better assess the impact of the change. If CodeGraph is not available, **inform the user** and fall back to manual file reading.
@@ -84,6 +90,7 @@ Run the shared review workflow from [../review-engine/SKILL.md](../review-engine
 Use the output format below, then follow the Optional Interactive Finding Presentation from [../review-engine/SKILL.md](../review-engine/SKILL.md).
 
 Map the shared review verdicts like this:
+
 - `APPROVED` -> `CLEAN`
 - `CHANGES_REQUESTED` -> `HAS_ISSUES`
 - Use `NEEDS_DISCUSSION` when intent or context remains unclear after the review.
@@ -98,7 +105,7 @@ When the user approves a finding ("yes"), apply the fix directly to the local fi
 
 ### Output Format
 
-```
+```text
 ## Local Review: {branch-name}
 
 **Reviewed at**: {YYYY-MM-DD HH:MM UTC}

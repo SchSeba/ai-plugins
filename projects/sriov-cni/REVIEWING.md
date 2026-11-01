@@ -174,7 +174,8 @@ the `k8snetworkplumbingwg/sriov-cni` repository.
 
 - **Branch prefix**: `dev/` branches for feature work (per CONTRIBUTING.md)
 - **Commit message format**:
-  ```
+
+  ```text
   Change summary
 
   Detailed explanation: why and how.
@@ -182,6 +183,7 @@ the `k8snetworkplumbingwg/sriov-cni` repository.
 
   Fixes #NUMBER
   ```
+
 - **Small, focused PRs**: One feature or fix per PR. Large omnibus changes
   are harder to review and more likely to be rejected.
 - **Tests with code**: Unit tests must be in the same commit as the code they

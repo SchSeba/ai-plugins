@@ -102,9 +102,11 @@ glog.Fatalf("Exiting.. one or more invalid configuration(s) given")
 ### Error Handling
 
 - Return errors up the call chain with context:
+
   ```go
   return fmt.Errorf("error reading config file: %w", err)
   ```
+
 - Do not silently ignore errors — the `errcheck` linter enforces this.
 - Hardware discovery functions must handle missing/inaccessible sysfs paths
   gracefully since devices can disappear at runtime (hot-unplug, driver unbind).
@@ -208,14 +210,16 @@ func TestResources(t *testing.T) {
 Two license header styles are in use:
 
 **Intel copyright (older files)**:
-```
+
+```c
 // Copyright 2018 Intel Corp. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 ```
 
 **NVIDIA SPDX (newer files)**:
-```
+
+```c
 /*
  * SPDX-FileCopyrightText: Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES.
  * SPDX-License-Identifier: Apache-2.0

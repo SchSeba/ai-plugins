@@ -8,6 +8,7 @@ description: Reusable multi-perspective code review engine for local diffs, pull
 Reusable review workflow for any skill that needs to evaluate code changes.
 
 Use this engine when:
+
 - reviewing local changes or pull requests
 - embedding a review phase inside another skill, such as `develop-feature`
 - standardizing severity levels, findings, and verdict rules across skills
@@ -65,6 +66,7 @@ Parallel review reduces wall-clock time and ensures each perspective gets dedica
 From the categorization in Step 4, build the list of review perspectives that have at least one relevant changed file.
 
 Priority order:
+
 1. Security Review
 2. Language-specific review (Go / Python / Frontend)
 3. Test Review
@@ -76,6 +78,7 @@ Group perspectives that share the same files into a single sub-agent when practi
 #### Construct the sub-agent task prompt
 
 For each sub-agent, construct a task prompt that includes:
+
 1. The perspective name and its complete review criteria from [review-perspectives.md](review-perspectives.md)
 2. The list of files to review
 3. The diff content for those files
@@ -146,6 +149,7 @@ Spawn all sub-agents in a single message so they run in parallel. Use the `Subag
 #### Aggregate findings
 
 After all sub-agents have returned:
+
 1. Collect all findings from all sub-agents into a single list.
 2. Deduplicate: if two perspectives flagged the same issue on the same file and line range, keep the higher-severity finding and note which perspectives identified it.
 3. Sort findings by severity: Critical, High, Medium, Low, Info.

@@ -10,7 +10,7 @@ The plugin is designed to work with Claude Code, Cursor, and any agent that supp
 
 ## Directory Layout
 
-```
+```text
 ai-plugins/
 ├── AGENTS.md              # This file — conventions and rules
 ├── README.md              # Project README with skills/commands catalog
@@ -80,6 +80,7 @@ The following rules are **mandatory** for all AI agents working in this reposito
 Every new skill and command **MUST** be added to `README.md`. This is a **blocking requirement** — a PR that adds a skill or command without updating `README.md` **MUST NOT** be merged.
 
 When adding a new skill:
+
 1. Add a row to the **Available Skills** table in alphabetical order.
 2. Add a row to the **Commands** table in alphabetical order (if the skill has a command).
 3. Add a dedicated section for the skill under the skills table (in alphabetical order) with description and usage examples.
@@ -103,6 +104,7 @@ The format for each table row is:
 When creating a new skill, **ALWAYS** read and follow `skills/write-a-skill/SKILL.md` first.
 
 This skill provides the complete workflow:
+
 1. Gather requirements from the user (including invocation design and branching).
 2. Create the skill directory and `SKILL.md` with proper frontmatter.
 3. Write the body using the information hierarchy — steps on top, reference below, disclosed reference behind context pointers.
@@ -124,3 +126,7 @@ Skills **MUST NOT** hardcode specific make targets, CLI commands, or tool invoca
 - **Exception**: Negative examples (what NOT to do) are acceptable for clarity.
 
 Even "example" commands in parentheses bias the agent toward using those specific targets instead of discovering the right ones from the project.
+
+## Markdown Validation
+
+Install the locked dependencies with `npm ci`, then run `npm run lint:md` from the repository root to validate Git-tracked Markdown files. Stage new Markdown files before running the check so Git includes them. The command reports violations without modifying files.
