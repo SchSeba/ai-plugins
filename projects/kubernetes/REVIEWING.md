@@ -16,6 +16,11 @@ the `kubernetes/kubernetes` repository.
   They become OpenAPI descriptions. Avoid inventing terminology — use the concept
   name consistently (e.g., say "a counter", not "a shared counter", unless the
   struct name literally is `SharedCounter`).
+  Comments should explain enduring behavior, contracts, or non-obvious rationale
+  independently of review history. Flag review-conversation references or redundant
+  assurances (e.g., “consistent with the other fields”) unless specifically requested,
+  while preserving useful semantics such as whether allocations already in flight
+  are included.
 - **Validation coverage**: Every new field needs validation rules in
   `pkg/apis/<group>/validation/`.
 - **Apply configurations**: Generated apply configs must include the new fields.

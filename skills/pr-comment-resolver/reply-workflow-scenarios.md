@@ -112,10 +112,12 @@ The resulting change coordinates the public field, dependent helper and caller, 
 
 | Scenario | Expected behavior |
 | --- | --- |
-| The user reviews actual applied Git changes, current head, target revision and operation, then explicitly approves that rebase | Execute only the approved operation, then refresh final head-to-base evidence and affected validation before any reply becomes eligible. |
-| The user declines or skips the rebase | Leave history unchanged and retain independent source edits; do not claim conflicts resolved. |
+| Corrections span multiple PR commits | Keep corrections uncommitted while approval is pending. Show the complete candidate diff and map each correction/hunk to the existing commit SHA and subject it will enter, along with current head/base, target revision, and operation. |
+| A correction could reasonably belong in more than one existing commit | Ask the user to clarify its destination; do not guess or begin the rebase. |
+| The user reviews the candidate and explicit existing-commit map, then approves the stated rebase | Integrate corrections only into those approved existing commits, without creating fixup commits (including temporary autosquash fixups), then refresh final head-to-base evidence and affected validation before any reply becomes eligible. |
+| The user declines or skips the rebase | Leave history unchanged and preserve the uncommitted corrections; do not claim conflicts resolved. |
 | The user is silent or gives only code-change approval, push confirmation, reply approval or blanket consent | Wait without rebasing; those decisions do not approve the rebase. |
-| Candidate changes, head, target revision or operation change after approval | Invalidate stale approval, show the updated Git candidate and target, and wait for fresh explicit rebase approval. |
+| Candidate changes, head/base, target revision, operation, or commit-placement map changes after approval | Invalidate stale approval, show the updated candidate and map, and wait for fresh explicit rebase approval. |
 
 ## Acceptance scenarios
 
@@ -135,7 +137,7 @@ The resulting change coordinates the public field, dependent helper and caller, 
 | Applicable validation fails or is blocked | Keep reply unset and state **No applied resolution to report**. A code approval, push confirmation, or reply approval cannot make it eligible. |
 | No automated check applies to the changed files | Record that no automated check applies and the manual diff checks performed. Draft only if the completed relevant change is confirmed by those checks. |
 | A later edit or revert changes the relevant diff or validation state | Invalidate the affected evidence and draft. Recheck before drafting; any prior reply approval and latest-push confirmation affected by the edit are stale. |
-| A fix is amended, squashed, or rebased into existing commits and the worktree is clean | If the final PR head-to-base change set still contains the relevant fix and applicable validation is checked, keep it eligible. A clean worktree or lack of a new commit does not disqualify it. |
+| An approved rebase integrates a fix into its mapped existing commits and the worktree is clean | If the final PR head-to-base change set still contains the relevant fix and applicable validation is checked, keep it eligible. A clean worktree or lack of a newly created commit does not disqualify it; no fixup commit is created. |
 | A rebase changes the relevant content or validation state after a draft was prepared | Treat the prior evidence and draft as stale. Recheck the new final PR head-to-base change set and applicable validation before drafting again; latest-push confirmation must cover the final reviewed PR head. |
 | Final summary or knowledge persistence is incomplete | Do not ask for push confirmation and do not publish. Finish the full review and knowledge step first. |
 | All review and knowledge steps are complete and eligible replies exist | Ask for explicit confirmation that the latest reviewed changes were pushed. Earlier confirmation, branch state, or a detected commit is insufficient. |
