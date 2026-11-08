@@ -21,6 +21,23 @@ to the `kubernetes/kubernetes` repository.
 
 ---
 
+## Contribution authority
+
+Follow the current [contributor PR guide](https://www.kubernetes.dev/docs/guide/pull-requests/),
+[API changes process](https://github.com/kubernetes/community/blob/main/contributors/devel/sig-architecture/api_changes.md),
+[API conventions](https://github.com/kubernetes/community/blob/main/contributors/devel/sig-architecture/api-conventions.md)
+and [OWNERS guide](https://www.kubernetes.dev/docs/guide/owners/).
+Route conceptual/API review separately from allocator/scheduler implementation
+review; inspect ownership coverage for every affected path. See
+[REVIEWING.md](REVIEWING.md) for trust/approvals, drafts/holds, release notes and
+review-friendly commit organization. Associated tests belong with their logical
+implementation; generated artifacts can be separated for review. Recheck this
+organization after rebasing and refresh the PR description.
+
+The inventory below is checkout-dependent project knowledge. Discover actual
+script interfaces and matching patterns in the target checkout. Historical PR
+preferences are heuristics, not universal rules.
+
 ## API Types
 
 ### Where types live
@@ -35,11 +52,14 @@ to the `kubernetes/kubernetes` repository.
 
 1. Edit the versioned types in `staging/src/k8s.io/api/`.
 2. Add/update validation in `pkg/apis/<group>/validation/`.
-3. Run `hack/update-codegen.sh` to regenerate deepcopy, conversions, defaults,
-   openapi, applyconfiguration, and protobuf code.
-4. Run `hack/update-openapi-spec.sh` (needs etcd on PATH).
-5. Run `hack/update-generated-api-compatibility-data.sh` (needs protoc on PATH).
-6. Run verifiers to confirm everything is consistent.
+3. Discover applicable generators and supported targets from the checkout.
+   Inspect source markers, internal conversions/defaulting, registry strategies
+   and feature-gate handling as well as versioned types.
+4. Regenerate affected code, OpenAPI and compatibility artifacts with the
+   matching tools; inspect their prerequisites rather than assuming one script
+   covers everything.
+5. Run matching verifiers and focused behavior/regression tests; use
+   [VALIDATION.md](VALIDATION.md) for the conditional discovery inventory.
 
 ### Field comments
 
@@ -71,7 +91,7 @@ Kubernetes uses extensive code generation. **Never hand-edit generated files.**
 | `+k8s:protobuf-gen` | Protobuf serialization |
 | `+k8s:validation-gen` | Declarative validation |
 
-Generated files are prefixed with `zz_generated.` — do not edit these.
+Many generated files are prefixed with `zz_generated.`; others include protobuf, apply configurations and OpenAPI artifacts. Inspect headers/source relationships and regenerate all affected outputs.
 
 ---
 
@@ -135,7 +155,7 @@ Contextual logging (`klog.FromContext`) is preferred in new code.
 
 - Live in `test/integration/`.
 - Require etcd (install via `hack/install-etcd.sh`).
-- Use `kubeadm`-style test helpers to spin up API servers.
+- Follow existing integration harness and API-server setup patterns in the affected suite.
 
 ### E2E tests
 
@@ -156,9 +176,9 @@ Contextual logging (`klog.FromContext`) is preferred in new code.
    `verify-boilerplate.sh`.
 4. **Editing generated files** — Files prefixed with `zz_generated.` are
    auto-generated. Edit the source types and re-run codegen instead.
-5. **Dirty worktree before verify** — `verify-codegen.sh` and
-   `verify-openapi-spec.sh` expect a clean `git status`. Commit or stash
-   unrelated changes first.
+5. **Verifier prerequisites** — Inspect current scripts for clean-tree and
+   regeneration requirements. Preserve unrelated work and review side effects;
+   never commit or stash blindly just to run a verifier.
 6. **Missing PATH for etcd/protoc** — Several scripts and tests need
    `third_party/etcd` or `third_party/protoc` on PATH.
 7. **Import alias violations** — The repo enforces specific aliases for k8s.io

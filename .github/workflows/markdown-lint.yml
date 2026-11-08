@@ -18,3 +18,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint:md
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: npm run test:resolver

@@ -5,7 +5,8 @@
     "node": ">=22"
   },
   "scripts": {
-    "lint:md": "node scripts/lint-markdown.mjs"
+    "lint:md": "node scripts/lint-markdown.mjs",
+    "test:resolver": "python3 skills/pr-comment-resolver/check_reply_workflow.py && python3 -B -m unittest discover -s skills/pr-comment-resolver -p test_discussion.py"
   },
   "overrides": {
     "katex": "0.19.1",
