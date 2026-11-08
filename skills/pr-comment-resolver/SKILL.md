@@ -235,6 +235,8 @@ The yes/no/skip prompt approves only the code change, never a reply. Keep the co
 
 For each valid request, restate its expected behavior and relevant regression cases before applying the user's approved change. After applying it:
 
+When adding or updating code comments or docstrings, describe enduring behavior, contracts, or non-obvious rationale in wording that stands on its own. Omit references to review conversations and redundant review-derived assurances (for example, “consistent with the other fields”) unless specifically requested. Preserve useful behavior details, such as whether allocations already in flight are included.
+
 1. Run repo-specific validation commands:
 
    **Discover the correct commands** using this priority order:
@@ -271,9 +273,11 @@ If the user says **no** or **skip**, make no code change and leave the reply uns
 
 #### Separate approval before any rebase
 
-Before executing any rebase, show the actual applied Git changes, including the final candidate PR change set and staged or unstaged corrections, current head revision, and intended target revision/branch and rebase operation. Let the user review that concrete candidate, then wait for separate explicit user rebase approval. Do not execute a rebase before this review and approval.
+Do not create fixup commits, including temporary fixup commits intended for autosquash. Keep applied corrections as reviewable uncommitted changes while rebase approval is pending.
 
-Code-change approval, push confirmation, reply approval, silence or blanket consent do not substitute for rebase approval. Decline or skip leaves history unchanged; silence means wait. Changed candidate changes, head, target revision, or operation invalidate approval and require presenting the updated candidate and obtaining fresh approval. If approval is unavailable, preserve completed independent edits and report the pending rebase gate without claiming conflict resolution. After an approved rebase, perform the evidence refresh below and repeat affected validation; never push.
+Before executing any rebase, show the complete candidate change set, including staged and unstaged corrections, current head and base revisions, target revision/branch, and intended rebase operation. For every correction, identify the exact existing PR commit by SHA and subject into which it will be integrated; include enough hunk or change detail for the user to review each placement. If any destination is ambiguous, ask the user to clarify before proposing or executing the rebase. Then wait for separate explicit user rebase approval.
+
+Code-change approval, push confirmation, reply approval, silence or blanket consent do not substitute for rebase approval. Decline or skip leaves history unchanged and preserves the edits; silence means wait. Changes to the candidate, head, base, target, operation, or commit-placement mapping invalidate approval and require presenting the updated plan and obtaining fresh approval. If approval is unavailable, preserve completed independent edits and report the pending rebase gate without claiming conflict resolution. After an approved rebase, integrate corrections only into the approved existing commits, without creating fixup commits; refresh the final head-to-base evidence and repeat affected validation. If the approved placement cannot be followed, stop and request updated approval. Never push.
 
 #### Determine reply eligibility
 

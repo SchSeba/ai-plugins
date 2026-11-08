@@ -50,6 +50,10 @@ API field comments become the OpenAPI descriptions. They must:
 - Include `+optional` marker for optional fields.
 - Include appropriate markers: `+listType=`, `+mapType=`, `+structType=`,
   `+featureGate=`, etc.
+- Describe enduring behavior, contracts, or non-obvious rationale so the comment
+  stands on its own. Omit review-conversation references and redundant assurances
+  (for example, “consistent with the other fields”) unless specifically requested.
+  Preserve useful semantics, such as whether allocations already in flight are included.
 
 ---
 

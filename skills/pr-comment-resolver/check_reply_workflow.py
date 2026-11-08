@@ -123,9 +123,9 @@ def main() -> int:
             and "applicable validation is checked" in skill,
         ),
         (
-            "rebased changes qualify with a clean worktree or no new commit",
-            "including fixes amended, squashed, rebased, or incorporated into existing commits" in skill
-            and "A clean worktree, unchanged commit count, or no newly created commit does not disqualify" in skill,
+            "approved corrections enter mapped commits without fixup commits",
+            "integrate corrections only into the approved existing commits" in skill
+            and "without creating fixup commits" in skill,
         ),
         (
             "rebases refresh evidence when relevant content or validation changes",
@@ -198,9 +198,9 @@ def main() -> int:
             and "A rebase changes the relevant content or validation state" in scenarios,
         ),
         (
-            "clean-worktree rebased-change scenario is documented",
-            "A fix is amended, squashed, or rebased into existing commits and the worktree is clean" in scenarios
-            and "does not disqualify it" in scenarios,
+            "approved mapped-commit integration remains eligible with a clean worktree",
+            "An approved rebase integrates a fix into its mapped existing commits and the worktree is clean" in scenarios
+            and "no fixup commit is created" in scenarios,
         ),
         (
             "README explains history-informed assessment and focused behavior checks",
@@ -215,10 +215,9 @@ def main() -> int:
             and "every available page of inline review comments and general PR comments" in readme,
         ),
         (
-            "README explains clean-worktree rebase eligibility and evidence refresh",
-            "final PR head-to-base change set" in readme
-            and "with a clean worktree" in readme
-            and "evidence is rechecked if rebasing changes relevant content or validation state" in readme,
+            "README explains approved mapped-commit eligibility and evidence refresh",
+            "corrections integrated into approved existing commits remain eligible with a clean worktree" in readme
+            and "evidence is rechecked if relevant content or validation changes" in readme,
         ),
         (
             "cross-repository behavior is documented",
@@ -272,14 +271,21 @@ def main() -> int:
     checks.extend([
         ("rebase review precedes execution and evidence refresh",
          skill.index("#### Separate approval before any rebase") < skill.index("#### Determine reply eligibility")
-         and "actual applied Git changes" in skill
+         and "complete candidate change set" in skill
          and "wait for separate explicit user rebase approval" in skill
          and "After an approved rebase" in skill),
-        ("rebase decisions and stale approval are explicit",
+        ("rebase corrections are uncommitted and no fixup commits are created",
+         "Keep applied corrections as reviewable uncommitted changes while rebase approval is pending." in skill
+         and "Do not create fixup commits" in skill
+         and "temporary fixup commits intended for autosquash" in skill),
+        ("every correction is mapped to an existing commit and ambiguous placement is clarified",
+         "For every correction, identify the exact existing PR commit by SHA and subject" in skill
+         and "If any destination is ambiguous, ask the user to clarify" in skill),
+        ("rebase decisions and stale placement approval are explicit",
          all(phrase in skill for phrase in (
              "silence or blanket consent do not substitute",
              "Decline or skip leaves history unchanged",
-             "target revision, or operation invalidate approval"))),
+             "operation, or commit-placement mapping invalidate approval"))),
         ("compatibility provenance is established before classification",
          skill.index("#### Establish production provenance") < skill.index("#### Classification rules")
          and "baseline revision, file/symbol evidence" in skill
@@ -296,13 +302,18 @@ def main() -> int:
              "An existing production field", "A field exists only",
              "PR adds two protobuf fields", "add no protobuf-number reservation",
              "production baseline or relevant history cannot be retrieved"))),
-        ("rebase scenarios cover approval refusal silence and staleness",
+        ("rebase scenarios cover multi-commit placement, ambiguity, refusal, silence and stale mapping",
          all(phrase in scenarios for phrase in (
-             "explicitly approves that rebase", "declines or skips the rebase",
-             "user is silent", "Invalidate stale approval"))),
-        ("README documents both new gates",
+             "Corrections span multiple PR commits",
+             "Ask the user to clarify its destination",
+             "without creating fixup commits",
+             "declines or skips the rebase",
+             "user is silent",
+             "commit-placement map changes after approval"))),
+        ("README documents compatibility and reviewed commit placement gates",
          "Before compatibility handling" in readme
-         and "waits for separate explicit rebase approval" in readme
+         and "maps every correction to an existing PR commit by SHA and subject" in readme
+         and "never creates fixup commits" in readme
          and "Missing baseline evidence requires context" in readme),
     ])
 
