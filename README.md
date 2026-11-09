@@ -350,7 +350,7 @@ Query your Jira tasks and epics using the [jira-cli](https://github.com/ankitpok
 
 A structured pre-push verification workflow for Kubernetes repository contributions. Analyzes the changed files in your working tree, determines which verification steps apply (lint, codegen, OpenAPI, API descriptions, integration tests, client-go API diff), and executes them in the correct dependency order — regenerating code before verifying, running focused tests before broad integration suites.
 
-Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kubernetes/) for the complete reference of all `hack/verify-*.sh` and `hack/update-*.sh` scripts, coding conventions, and review patterns.
+Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kubernetes/) for a conditional discovery inventory of verification/generation scripts, coding conventions, and review patterns. Confirm exact commands and prerequisites in the target checkout.
 
 **Usage:**
 
@@ -386,6 +386,8 @@ Interactively resolves PR review comments one at a time for any repository. The 
 ```text
 /pr-comment-resolver my-project https://github.com/owner/repo/pull/42
 ```
+
+The read-only [discussion collector and evidence contract](skills/pr-comment-resolver/discussion-evidence.md) cover independent thread and nested-comment pagination, general comments and submitted review bodies. Artifacts retain totals, cursors, source links, timestamps, head/base revisions and explicit gaps. Refresh snapshots before recommendations; contributor claims, outdated lines and old passing checks never prove resolution. Offline behavioral regressions and the existing acceptance checker run through `npm run test:resolver`. Kubernetes guidance follows canonical contribution, ownership, API review and Prow sources; its current contributor policy calls for direct human reviewer responses, so keep resolver analysis internal there.
 
 Before compatibility handling, the resolver compares the PR with an identified authoritative main/master or documented production baseline and records revision/file evidence. Proven production contracts retain warranted protection; PR-only additions removed before publication need no compatibility shim, legacy-name preservation, or protobuf-number reservation solely for compatibility. Missing baseline evidence requires context. Before any rebase, it shows the complete candidate changes, current head and base, target revision and operation, plus the SHA/subject mapping from each correction to an existing PR commit. Corrections stay uncommitted while approval is pending; no fixup commits are created. It asks for clarification when placement is ambiguous. Decline/skip preserves edits and history; silence means wait. Any change to the candidate, revisions, operation or placement map invalidates approval. Code-change approval, latest-push confirmation and reply approval remain separate gates.
 
@@ -520,6 +522,10 @@ ai-plugins/
     ├── pr-comment-resolver/
     │   ├── SKILL.md
     │   ├── check_reply_workflow.py
+    │   ├── discussion.py
+    │   ├── discussion-evidence.md
+    │   ├── discussion-cases.json
+    │   ├── test_discussion.py
     │   └── reply-workflow-scenarios.md
     ├── review-engine/
     │   ├── SKILL.md

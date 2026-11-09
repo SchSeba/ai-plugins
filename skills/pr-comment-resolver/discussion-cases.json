@@ -1,0 +1,37 @@
+{
+  "provenance": "Synthetic patterns inspired by historical Kubernetes PR 140084; no live counts or personal data.",
+  "sequence": [
+    {
+      "id": "request",
+      "body": "Reject an empty allocation before scheduling.",
+      "author": {
+        "login": "reviewer",
+        "__typename": "User"
+      }
+    },
+    {
+      "id": "claim",
+      "body": "Done.",
+      "author": {
+        "login": "contributor",
+        "__typename": "User"
+      }
+    },
+    {
+      "id": "followup",
+      "body": "Still missing validation on update.",
+      "author": {
+        "login": "reviewer",
+        "__typename": "User"
+      }
+    },
+    {
+      "id": "bot",
+      "body": "Potential unchecked error in allocation.",
+      "author": {
+        "login": "audit-bot",
+        "__typename": "Bot"
+      }
+    }
+  ]
+}
