@@ -21,6 +21,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [jira-cli](#jira-cli)
   - [kubernetes-pre-push](#kubernetes-pre-push)
   - [pr-comment-resolver](#pr-comment-resolver)
+  - [retrospective](#retrospective)
   - [review](#review)
   - [review-engine](#review-engine)
   - [write-a-skill](#write-a-skill)
@@ -181,6 +182,7 @@ cp -r commands/* ~/.cursor/commands/
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
 | [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
+| [retrospective](#retrospective) | Learn durable standards from merged PR feedback | `/retrospective` |
 | [review](#review) | Structured four-perspective PR review (Developer, QE, Security, DevOps) — routes through `code-review review-pr` | `/review` |
 | [review-engine](#review-engine) | Reusable review engine (shared by other skills) | `/review-engine` |
 | [write-a-skill](#write-a-skill) | Create new agent skills with proper structure, conventions, and registration | `/write-a-skill` |
@@ -405,6 +407,20 @@ Before compatibility handling, the resolver compares the PR with an identified a
 
 ---
 
+### retrospective
+
+Reviews the accepted changes and discussion of a merged PR to identify
+evidence-backed project standards and workflow improvements. Manual runs open
+a PR for validated guidance changes. ByteBot submits proposals through its
+controller, which validates and publishes them. A retrospective can finish
+without changes.
+
+```text
+/retrospective https://github.com/owner/repo/pull/42
+```
+
+[Skill](skills/retrospective/SKILL.md) · [Command](commands/retrospective.md)
+
 ### review
 
 Structured four-perspective PR review. Runs the [code-review](#code-review) `review-pr` pipeline (diff analysis, parallel reviewer spawning, CI checks, finding aggregation) and groups the output into four engineering perspectives instead of the default flat severity-sorted format. Every issue found includes a clear explanation of how to fix it and a code snippet showing corrected code.
@@ -502,6 +518,7 @@ ai-plugins/
 │   ├── jira-cli.md
 │   ├── kubernetes-pre-push.md
 │   ├── pr-comment-resolver.md
+│   ├── retrospective.md
 │   ├── review.md
 │   ├── review-engine.md
 │   └── write-a-skill.md
@@ -527,6 +544,8 @@ ai-plugins/
     │   ├── discussion-cases.json
     │   ├── test_discussion.py
     │   └── reply-workflow-scenarios.md
+    ├── retrospective/
+    │   └── SKILL.md
     ├── review-engine/
     │   ├── SKILL.md
     │   └── review-perspectives.md
