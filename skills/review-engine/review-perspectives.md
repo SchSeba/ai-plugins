@@ -17,7 +17,7 @@
 | `.tf`, `.tfvars`, `terragrunt.hcl` | Terraform / IaC |
 | `go.mod`, `go.sum`, `package.json`, `*lock*`, `requirements.txt`, `pyproject.toml` | Dependency |
 | `CHANGELOG.md`, `RELEASE_NOTES.md`, `docs/` | Documentation |
-| Changes spanning 2+ packages/services without integration tests | Integration & E2E Test |
+| Changes to contracts between components, services or layers | Integration & E2E Test |
 | **All code** (always apply) | **Security**, **Performance** |
 
 ---
@@ -27,6 +27,8 @@
 - Idiomatic patterns and stdlib usage (`io`, `context`, `errors`, `slices`, `maps`)
 - Error handling: wrapping with `%w`, `errors.Is`/`As`, sentinel errors, custom types
 - Concurrency: goroutine lifecycles, channel ownership, sync primitives, `errgroup`
+- For a value copied from a cache, map or fixture, check the copy and mutation semantics in the dependency version under review. Identify the write that could change the original before reporting an aliasing bug.
+- When ranging over a map, try inputs that exercise two different outcomes in one pass. Check that a soft rejection cannot hide a required error just because its entry was visited first.
 - Interface design: small interfaces, accept interfaces return structs, embedding
 - Performance: allocation reduction, `strings.Builder`, slice pre-allocation, `sync.Pool`
 - Package naming, circular dependency avoidance, internal packages
@@ -96,6 +98,7 @@
 ## Performance (always apply)
 
 - Memory allocations in hot paths (escape analysis, heap vs stack)
+- For repeated scans, name the population scanned and the unit of work that pays for it. Compare cold and repeated calls with the base, including the disabled or unused path for optional features. Use a representative measurement when claiming a slowdown.
 - Slice/map pre-allocation when size is known
 - String concatenation in loops (`strings.Builder`, `bytes.Buffer`)
 - Unnecessary copying of large structs (use pointer receivers)
@@ -116,8 +119,9 @@
 - Mock quality: mocks match real interface behavior
 - Flaky indicators: `time.Sleep`, race conditions, order-dependent
 - Benchmarks for performance-critical paths
-- **Regression coverage**: bug-fix PRs must include a test for the previously-broken scenario
-- **Edge case completeness**: for each changed function, identify 2-3 untested edge cases (empty/nil inputs, overflow, concurrent access, permission boundaries, first-use vs steady-state)
+- For a regression, check whether the case fails for the reported reason on the affected revision and passes with the fix. For compatibility, run the established baseline cases under relevant new modes and verify any changed expectation against the contract.
+- Check that the expected result is independent of the implementation. Test setup can use the real state builder used by production. Derive expected values from a small, inspectable fixture and compare the complete contractual result, including fields that should be absent. Clearing a changed field before comparing can hide a regression.
+- Choose inputs that distinguish causes. For example, if one of two limits should reject an operation, leave the other limit with headroom and assert the observable rejection and recovery.
 
 ## API
 
@@ -186,11 +190,11 @@ Apply when public APIs, CLI commands, or configuration options change. Skip when
 
 ## Integration & E2E Test
 
-Apply when changes span 2+ packages, services, or layers.
+Apply when the changed behavior depends on a contract between components, services or layers.
 
-- **Cross-component coverage**: multi-layer changes need integration tests with real dependencies (not just mocked unit tests)
-- **E2E for new user flows**: new API endpoints consumed by frontend need end-to-end tests
+- **Cross-component coverage**: exercise the real producer and consumer together when isolated tests cannot cover their shared contract
+- **E2E for new user flows**: look for end-to-end coverage when wiring or user-visible behavior can only be verified through the full stack
 - **Contract consistency**: API response shape changes must update AND test all consumers together
 - **State lifecycle across boundaries**: when Service A creates state that Service B reads, test with real data
 - **Patterns to flag**: handler tests mocking the service layer for new endpoints, service tests mocking repositories for complex queries, frontend tests with hardcoded API shapes
-- **Recommendation threshold**: if the PR touches 2+ layers (handler, service, repository, model, frontend) with NO integration/e2e tests, flag as **high-severity**
+- **Coverage gaps**: identify the behavior a broken integration could silently pass and the narrowest test that would detect it. Size severity to the consequence.
