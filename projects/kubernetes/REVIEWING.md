@@ -92,6 +92,60 @@ for affected staging modules using the checkout's policy; do not prescribe a
 universal changelog or allowlist workaround. Follow existing logging, context,
 imports, boilerplate and test-helper patterns supported by the checkout/toolchain.
 
+## Reviewing stateful allocation and controller changes
+
+Choose checks based on which state the change reads or writes. The
+[shared-capacity review](SHARED_CAPACITY_REVIEW.md) traces examples to the
+discussions and the implementation that ultimately merged.
+
+- Identify the unit of accounting and its source of truth. DRA charges a fixed
+  cost from current ResourceSlices once per device with a non-admin allocation.
+  Each such allocation records its own request-dependent charge. Trace what
+  happens when two shares exist, one is released and the driver changes a
+  definition. Check the documented meanings of absent and explicit zero values.
+- Follow both immediate candidate rejection and backtracking after tentative
+  success. Each must undo only that candidate's mutations. Look for an earlier
+  share's usage or empty reservation marker that must survive rollback.
+- Trace the staging API through its producers and consumers. In the scheduler,
+  a persisted allocation can still be in flight. Does the merged view count it
+  exactly once while retaining other shares of the same device? Can a cache
+  update during assembly produce an inconsistent snapshot? Check status
+  controllers and the public autoscaler contract when the changed state reaches
+  them. Exercise the production state-building helper in tests and specify the
+  expected results independently.
+- Follow writes back to their owners, including informer objects and shared
+  test fixtures. Before reporting aliasing, inspect the type's copy semantics
+  at the target revision or show that mutating a copy changes the source.
+- Separate errors that must abort allocation from candidates that do not fit.
+  Check whether an early return in an unordered loop can hide a required error.
+  When a feature delegates part of a request to an existing resolver, check
+  that filtering preserves inputs that resolver must validate. Compare against
+  the base revision before assigning a regression to the PR.
+- For new scans, allocations or copies in a scheduling path, identify what
+  triggers the work and how often it repeats across nodes or pools. Compare
+  gate-off, enabled-but-unused and active paths before recommending an index.
+
+## Reviewing tests at the failure boundary
+
+- For field dropping, declarative validation or ratcheting, check the request
+  through strategy preparation and validation. An invalid policy alongside a
+  valid value can reveal a validation call skipped by an early return.
+- Isolate the limiting resource. To prove counter exhaustion, leave a device
+  available. In a scheduler integration test without a kubelet, verify that
+  `spec.nodeName` stays empty until capacity is released. A bound Pod can
+  still have phase `Pending`.
+- Compare all fields the contract constrains, including fields expected to be
+  absent. Clearing a new field before comparison and asserting it only in
+  positive cases lets an unexpected value pass.
+- Exercise reconstruction from existing allocations as well as multiple new
+  allocations in one call. Check the capacity that a surviving share retains
+  and the capacity that becomes available after the last release. When two
+  policies apply independently, choose defaults or limits that differ so a
+  test can tell which one was applied.
+- Inspect the existing feature-permutation harness before requesting duplicate
+  gate variants. When regrouping test tables or resolving rebase conflicts,
+  compare case names and assertions and retain duplicate-name detection.
+
 ## CI and merge readiness
 
 Use [VALIDATION.md](VALIDATION.md) for revision-pinned failure diagnosis.

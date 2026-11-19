@@ -1,6 +1,6 @@
 # PR reply workflow acceptance scenarios
 
-These documentation scenarios apply to every repository and local folder. They define acceptance behavior for [SKILL.md](SKILL.md); they do not send live replies. Run the repeatable local check from the repository root with `python3 skills/pr-comment-resolver/check_reply_workflow.py`.
+These scenarios exercise [SKILL.md](SKILL.md) without sending live replies. Examples with eligible drafts assume the target repository permits assisted responses. Run the repeatable local check from the repository root with `python3 skills/pr-comment-resolver/check_reply_workflow.py`.
 
 ## Comment-history pagination
 
@@ -45,6 +45,9 @@ After the implementation is complete, the current diff is checked against this c
 | Relevant earlier discussion cannot be retrieved, or an earlier rationale depends on migration/context that is not available | State which history or context is missing, mark the request needs context, and ask the user for it before proposing a fix or requesting code-change approval. Do not assume the prior request is valid or invalid. |
 | Applicable project checks pass, but a focused reproduction still reads `req.User` before rejecting nil | Report the observed behavior mismatch. The change is not resolved and no reply is eligible, despite passing general checks. Fix and recheck or leave the reply unset. |
 | The expected nil behavior and regression cases are stated, the approved change enforces them, applicable project checks pass, and focused behavior evidence confirms the result | Record exact check outcomes and observed behavior against the expectation. The resolution may become eligible for a factual reply, subject to the existing final-diff and publication gates. |
+| A reviewer once requested callbacks for empty results, then explained that the contract changed. The published implementation now skips empty results. | Verify the current caller and helper, then retire the earlier request with its rationale. Check that the current documentation describes when the callback runs. |
+| A reviewer supplies a generated patch and asks the contributor to check the expected results personally. CI passes with the patch. | Derive expected results from the input and contract when assessing the patch. Report the agent's observations and leave the contributor's personal audit outstanding until they confirm it. |
+| The author says a missing test is now in the API commit. The test is visible at the published head but first appears in a later commit. | Record that the coverage exists and the requested placement is still outstanding. Leave the fix reply unset. |
 
 ## API-field rename impact
 
@@ -148,4 +151,5 @@ The resulting change coordinates the public field, dependent helper and caller, 
 | Reply operation is unavailable, target identity is uncertain, or a write result is uncertain | Leave the reply pending; do not substitute a top-level comment or blindly retry. Verify an uncertain write first. |
 | A reply targets an inline review comment or general PR comment | Preserve the original comment URL and ID, plus inline thread ID when available. Reply only in its matching original context. |
 | No actionable comment entered Step 4 | Report that no actionable comments were found. Do not ask for push confirmation or perform a comment write. |
-| Target PR is kubernetes/kubernetes or example/widgets from an arbitrary local folder | Apply the same eligibility, evidence, identity, full-review, latest-push, and individual-approval rules. Repository and folder names do not change the workflow. |
+| Target PR is kubernetes/kubernetes and the fix is verified | Record the published change and checks for the contributor's private use. Leave the reply unset and skip publication even if the user approves a reply. The contributor must respond independently under the [Kubernetes PR guidance](https://www.kubernetes.dev/docs/guide/pull-requests/#ai-guidance). |
+| Target PR is in a repository that permits assisted replies | Apply the evidence, identity, full-review, latest-push and individual-approval rules regardless of the local folder. |

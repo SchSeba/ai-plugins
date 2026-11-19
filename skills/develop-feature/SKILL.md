@@ -1,13 +1,13 @@
 ---
 name: develop-feature
-description: Execute a three-phase Code -> Review -> Validate workflow with iterative implementation until the review passes. Expects an approved plan as input (produced by the plan-feature skill or inline planning). Enforces production-readiness with extensive logging, comprehensive testing (unit + E2E), multi-agent code review, and build validation. Metrics and tracing are added when the project already has that infrastructure. Use when you have an approved plan and want production-grade coding, review, and validation in one workflow.
+description: Implement an approved feature or bug-fix plan, iterate on multi-perspective review, and validate the result. Use when a plan is ready for coding, review, and validation.
 ---
 
 # Develop Feature
 
 A three-phase development workflow: **Code -> Review -> Validate** with automated iteration until the review passes. Requires an approved implementation plan as input.
 
-Every feature produced by this workflow MUST be **production-ready**: structured logging, comprehensive unit and E2E tests, and a clean build. Metrics and distributed tracing should be added when the project already has that infrastructure in place. No shortcuts.
+Follow the project's production requirements. Choose tests and instrumentation for the behavior being changed and the failures its users or operators need to detect.
 
 ## Usage
 
@@ -23,7 +23,7 @@ Every feature produced by this workflow MUST be **production-ready**: structured
 
 ## Workflow Overview
 
-Execute these three phases in order. The plan is an input dependency -- it must exist before this workflow begins. If the review phase requests changes, loop back to the coding phase with the review feedback, then re-review. After approval, a final validation phase re-runs the full test suite.
+Execute these three phases in order. The plan is an input dependency -- it must exist before this workflow begins. If the review phase requests changes, loop back to the coding phase with the review feedback, then re-review. After approval, verify that the final revision satisfies the project's applicable checks.
 
 ```text
                    +----------+     +----------+     +----------+
@@ -47,31 +47,11 @@ Execute these three phases in order. The plan is an input dependency -- it must 
 
 ## Phase 2: CODING
 
-**Role:** You are a staff-level coding agent. You write production-grade code, not prototypes.
-
-**Goal:** Implement the approved plan (from the planning phase or plan-feature skill), or address review feedback if iterating. Every line of code you write must be ready for production: observable, tested, and clean.
-
-> **The plan from the planning phase (or plan-feature skill) should be available as input.** If a plan document exists at `docs/plans/{feature-name}-plan.md`, read it first. If no plan exists, analyze the task yourself before coding -- but the plan-feature skill is recommended for thorough planning.
-
-### Critical Rules
-
-1. **Follow the plan.** If a plan exists (from plan-feature or a prior planning phase), follow it. If no plan exists, analyze the task yourself.
-2. **If iterating after a review**, your PRIMARY job is to address every item from the review feedback. You MUST fix ALL issues — not just the critical ones.
-3. **Every new feature must include logging.** Metrics and tracing should be added only if the project already uses them.
-4. **Add docstrings or equivalent function-level documentation** to every new function.
-5. **Every new function must have tests** — both unit tests and E2E tests where applicable.
+Implement the approved plan. On a review iteration, verify the reported behavior on the current revision before changing code.
 
 ### Step 2.0: Read Project Guidelines (MANDATORY — Do This FIRST)
 
-Before writing any code, re-read the project's best-practices files and any previously learned knowledge:
-
-1. **Read `.ai-rules/`** — If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). These contain previously learned coding conventions, validation commands, and review patterns. Apply them throughout your coding work.
-2. **Read `projects/<project-name>/`** — If this plugin repository has a `projects/<project-name>/` directory (where `<project-name>` matches the target project's repo name), read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). Apply any additional knowledge from this shared layer.
-3. **Read `AGENTS.md`** — Follow all project-specific rules and conventions.
-4. **Read `CONTRIBUTING.md`** and any other project guidelines.
-5. **Read `Makefile`** — Know the exact build, test, and lint commands.
-
-> **Rule:** Project-specific conventions from these files ALWAYS override the generic guidelines below. If `AGENTS.md` says "use `klog`", you use `klog` even if the guidelines below suggest `slog`.
+Read the current checkout's `AGENTS.md`, `CONTRIBUTING.md` and build configuration for the applicable project rules and validation targets. Consult `.ai-rules/` and the plugin's `projects/<project-name>/` for prior coding, review and validation lessons. Check that those lessons still apply to this revision. Follow the user's instructions and the project's current requirements.
 
 ### Step 2.1: Review Context
 
@@ -79,25 +59,19 @@ Before writing any code, re-read the project's best-practices files and any prev
    - Look for the plan document at `docs/plans/{feature-name}-plan.md`.
    - Follow the plan's ordering and architecture decisions.
 
-2. **If iterating**, read the review feedback from the previous cycle.
-   - Address every `CHANGES_REQUESTED` item. Do not skip any.
-   - If a reviewer flagged a bug, write a test that reproduces it FIRST, then fix it.
+2. **If iterating**, use the latest diff and the earlier review to locate the reported behavior. Trace a valid input through its caller and any guards. For a confirmed bug, reproduce the failure at the narrowest practical boundary. If the premise has changed or the input cannot reach that path, record the evidence for the reviewer.
 
 ### Step 2.2: Understand the Codebase
 
-Before writing code:
+Read the files you will change, their callers and nearby tests. Use CodeGraph when available to follow symbols across packages. If the project has no usable index, follow the configured provider's setup instructions to initialize it. If the provider is unavailable, state that limitation and continue with direct source inspection. Match the project's conventions and reuse the existing entry points.
 
-> **CodeGraph-first rule:** If the CodeGraph MCP server is configured and available, prefer `codegraph_explore` for understanding the codebase before writing code. If CodeGraph is available but the project has no `.codegraph/` directory, run `codegraph init` in the project root first. If CodeGraph is not available, **inform the user** and fall back to manual file reading below.
+For changes to shared state, identify which producer owns each value, what is stored versus derived, and which readers must agree after update, retry, release or restart. Keep existing callers and persisted data in that analysis. Before mutating borrowed data, inspect the type's copy semantics at the project's dependency version, including any shared backing storage.
 
-1. **Read files you will modify.** Use `codegraph_explore` to get the source of files and symbols you plan to change — it returns verbatim source with line numbers. Fall back to reading files directly if CodeGraph is not available.
-2. **Read adjacent files.** Use `codegraph_explore` to trace callers and callees of the functions you'll modify. If modifying a service, this reveals its handler, repository, and tests in one call. Fall back to manually reading adjacent files if CodeGraph is not available.
-3. **Check for project guidelines** (`AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING.md`, `Makefile`).
-4. **Match existing patterns.** Your code must look like it belongs in this codebase.
-5. **Identify the existing observability setup.** Find how the project does logging, metrics, and tracing. Use the SAME libraries and patterns.
+When iterating over unordered inputs can produce different outcomes, define which outcome takes precedence. For example, if a fatal input error must surface even when another item is merely ineligible, an early return on the first ineligible item can hide the error.
 
 ### Step 2.3: Implement with TDD (Red-Green-Refactor)
 
-For each logical change:
+For a change in observable behavior, use an existing test when it already captures the contract. When adding a regression test:
 
 1. **RED** — Write a failing test that describes the expected behavior.
    - Descriptive name explaining what's being tested
@@ -113,31 +87,7 @@ For each logical change:
    - Simplify conditionals
    - But do NOT over-abstract
 
-When TDD is impractical (wiring code, configuration, UI layout), write the code first but add tests immediately after.
-
-### Step 2.3.1: Pre-Coding Test Commitment (MANDATORY — Do This BEFORE Writing Implementation Code)
-
-> **STOP.** Before writing any implementation code, you must declare the test files you will create. This is a hard gate — skip it and the review will reject your work.
-
-For every new function or modified function in your plan, list the following **now** — before writing a single line of implementation:
-
-1. **Test file paths** — Exact file paths for every test file you will create or modify (e.g., `internal/service/user_service_test.go`, `web/src/utils/__tests__/taskUtils.test.ts`).
-2. **Test cases per function** — For each new public function, list at least:
-   - One happy-path test
-   - One error-path test
-   - One edge-case test (nil/empty/zero/boundary)
-3. **E2E / Integration test files** — If the feature touches 2+ layers, list the integration test file path and the end-to-end scenario it will cover.
-
-**Format your commitment as a checklist:**
-
-```text
-Test Files I Will Create:
-- [ ] path/to/unit_test_file — tests for FunctionA (happy, error, edge), FunctionB (happy, error)
-- [ ] path/to/integration_test_file — E2E: full request → service → repository flow
-- [ ] path/to/frontend_test_file — tests for ComponentX, utilityY
-```
-
-> **Rule:** You are NOT allowed to proceed to Step 2.4 until this checklist exists. You are NOT allowed to declare coding complete (Step 2.8+) until every item in this checklist is checked off. The review phase will verify this checklist against the actual test files you created.
+When a failing test is impractical before implementation, choose the closest check that exercises the change. For wiring, that may be an integration test through the real entry point.
 
 ### Step 2.4: Language-Specific Best Practices
 
@@ -232,17 +182,17 @@ Test Files I Will Create:
 
 ### Step 2.5: Observability Implementation
 
-> **Logging is MANDATORY for every feature.** Metrics and tracing should only be added if the project already has existing metrics/tracing infrastructure. If the project does not use metrics or tracing, skip sections 2.5.2 and 2.5.3 and focus on logging only.
+Use existing instrumentation where it answers the operational question. Add a signal when the new behavior creates a failure or transition an operator needs to observe. Use metrics and tracing where the project already supports them.
 
 #### 2.5.1: Structured Logging
 
-Add log lines at appropriate levels throughout your new code. Follow the project's existing logging library and patterns.
+Log at the boundary that has the context to explain the event, using the project's library and levels. Check whether the caller already records the failure.
 
 **Log Level Guidelines:**
 
 | Level | When to Use | Examples |
 |-------|-------------|---------|
-| **DEBUG** | Detailed internal flow for troubleshooting. High-volume, disabled in production by default. | Variable values, internal state transitions, detailed request/response payloads |
+| **DEBUG** | Detailed internal flow for troubleshooting. High-volume, disabled in production by default. | Sanitized diagnostic fields, internal state transitions |
 | **INFO** | Significant business events and operational milestones. Always enabled. | Service started, request handled, resource created/updated/deleted, configuration loaded |
 | **WARN** | Recoverable issues that deserve attention. May indicate a degraded state. | Retry attempt, deprecated API used, fallback triggered, approaching resource limit |
 | **ERROR** | Unrecoverable failures that require investigation. Must not be noisy. | Operation failed after retries, external dependency unreachable, data corruption detected |
@@ -273,7 +223,7 @@ Add log lines at appropriate levels throughout your new code. Follow the project
   - ❌ Full request/response bodies that may contain credentials
   - ✅ Log resource identifiers, operation types, and sanitized metadata
 
-- **Log at entry and exit points** of significant operations:
+- **For a long-running operation**, start and completion events can help distinguish a stall from a slow success:
 
   ```go
   func (s *Service) ReconcileResource(ctx context.Context, name string) error {
@@ -296,7 +246,7 @@ Add log lines at appropriate levels throughout your new code. Follow the project
 
 > **Skip this section if the project has no existing metrics infrastructure.** Check the codebase first for prometheus, otel-metrics, or similar libraries. If none exist, do not add metrics.
 
-Add metrics to track the health and performance of your new code. Follow the project's existing metrics library and naming conventions.
+Choose a metric when the feature needs a health or performance signal. Follow the project's existing metrics library and naming conventions.
 
 **Metric Types and When to Use Them:**
 
@@ -324,7 +274,7 @@ Add metrics to track the health and performance of your new code. Follow the pro
 
 > **Skip this section if the project has no existing tracing infrastructure.** Check the codebase first for Jaeger, OpenTelemetry, or similar. If none exist, do not add tracing.
 
-Add trace spans to your new code so operations can be followed across service boundaries. Follow the project's existing tracing setup (e.g., Jaeger, OpenTelemetry).
+Add a span when an operation needs to be followed across service boundaries. Follow the project's existing tracing setup (e.g., Jaeger, OpenTelemetry).
 
 **Tracing Best Practices:**
 
@@ -360,7 +310,7 @@ Add trace spans to your new code so operations can be followed across service bo
 
 ### Step 2.6: Cross-Cutting Concerns
 
-Apply to ALL code regardless of language.
+Use the considerations that apply to the changed path and its contract.
 
 #### Security (OWASP Top 10)
 
@@ -375,7 +325,7 @@ Apply to ALL code regardless of language.
 - **Timeouts**: Add timeouts to ALL external calls.
 - **Connection Pooling**: Reuse HTTP clients and database connections.
 - **Pagination**: All list endpoints MUST support pagination.
-- **N+1 Queries**: Never fetch related records in a loop.
+- **Repeated work**: Estimate cost from both data size and call frequency. In a per-candidate loop, a scan of all records multiplies by the candidate count. For optional features, check the disabled and enabled-but-unused paths before adding a cache or index. Measure if the trade-off is unclear.
 
 #### Clean Architecture
 
@@ -386,33 +336,26 @@ Apply to ALL code regardless of language.
 
 #### Documentation
 
-- **Docstrings**: Add docstrings or equivalent function-level documentation to every new function.
+- **Docstrings**: Follow repository requirements for public interfaces. Document contracts a caller could otherwise misread, such as ownership, units, missing values or failure behavior.
 - **Comments**: Comments explain WHY, not WHAT. Only comment when the reason is non-obvious.
 
-### Step 2.7: Comprehensive Testing (MANDATORY — HARD GATE)
+### Step 2.7: Test the Changed Behavior
 
-> **⛔ STOP — TESTING IS NOT OPTIONAL.**
-> Untested code is incomplete code. You MUST write both unit tests and E2E/integration tests for every new feature.
-> **You are NOT allowed to proceed to Step 2.8 (Build Validation) until you have written ALL tests listed in your Step 2.3.1 commitment.**
-> If you skip this step, the review WILL reject your work and you will be sent back to write the tests anyway. Write them now.
->
-> **Self-check before continuing:** Open your Step 2.3.1 test commitment checklist. For EACH test file listed: does the file exist? Does it contain the test cases you committed to? If any answer is "no", you are not done with this step.
+Choose the lowest test level that distinguishes the new behavior from the previous one. Extend the existing harness if it already varies relevant configurations. Retain baseline expectations for supported modes, including existing data when a feature is disabled.
 
 #### 2.7.1: Unit Tests
-
-Every new or modified function MUST have unit tests. Follow these requirements:
 
 **Test Structure:**
 
 - **Table-driven tests** with descriptive subtests (e.g., `t.Run("returns error when input is nil", ...)`)
-- **One test function per behavior**, not one monolithic test per function
+- Group cases by behavior with names that identify the scenario
 - **Arrange-Act-Assert** pattern for clear test organization
 - Use `t.Helper()` in Go test helpers, `@pytest.fixture` in Python
 
 **What to Test:**
 
 - ✅ Happy path — the expected normal behavior
-- ✅ Error paths — every error return, every exception catch
+- ✅ Error paths — failures that change the caller-visible outcome
 - ✅ Edge cases — nil/null inputs, empty slices/lists, zero values, boundary conditions
 - ✅ Concurrent access — if the code uses goroutines, locks, or shared state
 - ✅ Input validation — invalid inputs, malformed data, missing required fields
@@ -427,6 +370,8 @@ Every new or modified function MUST have unit tests. Follow these requirements:
   - **Rust**: `mockall`
 - Mocks must match real interface behavior — never skip error cases in mocks
 - Verify mock interactions when the side effect IS the behavior (e.g., "ensure the cache was invalidated")
+- When fixtures must reconstruct production state, reuse the production state builder where available. Specify expected results independently from the implementation being tested.
+- Compare the complete result promised by the contract, including fields expected to be absent. Mask only genuinely variable details, such as generated IDs, and check their required properties separately.
 
 **Test Quality Rules:**
 
@@ -437,14 +382,7 @@ Every new or modified function MUST have unit tests. Follow these requirements:
 
 #### 2.7.2: E2E / Integration Tests
 
-When the feature touches multiple components or layers, E2E tests are MANDATORY.
-
-**When E2E Tests are Required:**
-
-- Feature touches 2+ layers (handler → service → repository)
-- Feature involves external service communication
-- Feature adds a new API endpoint
-- Feature changes data flow across component boundaries
+Use an integration test when the behavior depends on how components exchange data, preserve state, or recover from failure. Use an end-to-end test when the user-visible outcome requires the full stack and existing coverage cannot establish it.
 
 **E2E Test Structure:**
 
@@ -465,173 +403,25 @@ When the feature touches multiple components or layers, E2E tests are MANDATORY.
 - The full operation completes successfully
 - Side effects occurred (data written, events emitted, caches updated)
 - Error responses have correct status codes and messages
-- Observability: log messages were emitted, metrics were updated (when testable)
+- When a scenario should be blocked, keep other prerequisites satisfiable and assert the decision the component owns. Where recovery matters, remove the blocking condition and verify progress.
 
-#### 2.7.3: Test Coverage Verification
+### Step 2.8: Validate the Change
 
-After writing tests:
+Discover the applicable formatting, generation, lint, test and build commands from the current project's instructions, build files and CI. Use local `.ai-rules/VALIDATION.md` and the plugin's `projects/<project-name>/VALIDATION.md` as starting points. Confirm recorded commands still match the checkout.
 
-- Run the test suite and verify all new tests pass
-- Check that every new public function has at least one test
-- Check that every error path is tested
-- Check that edge cases identified in the plan are covered
+Use focused checks while iterating. Regenerate affected mocks or generated outputs using the project's workflow, inspect their diff, and run the matching verifiers. For an unexpected failure, compare with the base revision under the same inputs and configuration when practical. Fix failures caused by the change and report unrelated or unverified failures with the evidence.
 
-### Step 2.7.4: Testing Gate — STOP AND VERIFY (MANDATORY)
+### Step 2.9: Inspect the Complete Diff
 
-> **⛔ FULL STOP.** You may NOT proceed to build validation until you pass this gate.
+Read the diff before requesting review. Check dependent serializers, comparisons, public documentation, interface implementations and mocks where their contract changed. Look for debug code, unrelated edits and formatting changes. After a rebase, compare against the new base and the pre-rebase change to catch lost upstream behavior, displaced tests or a reintroduced duplicate implementation. Recheck the affected paths.
 
-Go back to your Step 2.3.1 test commitment checklist and verify each item:
+Record the checks run, what they establish and any gaps for the reviewer.
 
-1. **For every test file path you listed:** Does the file exist? Open it and confirm.
-2. **For every test case you committed to:** Does the test exist in the file? Is it implemented (not just a skeleton or `t.Skip()`)?
-3. **For every E2E/integration test you committed to:** Does it test the full flow across component boundaries?
+### Step 2.10: Persist Verified Project Knowledge
 
-**Produce a test verification report** — list each committed test file and its status:
+When the task yields a reusable lesson, use the two knowledge layers below within the authorized repositories. Record the specific contract or decision and its supporting code, test, or accepted resolution on the relevant revision. An early proposal, an outdated thread, or a resolution flag alone is insufficient evidence of a defect.
 
-```text
-Test Verification:
-- [x] path/to/unit_test_file — 5 tests written (3 happy, 1 error, 1 edge)
-- [x] path/to/integration_test_file — 2 E2E scenarios covered
-- [ ] path/to/missed_test_file — NOT YET WRITTEN ← go back and write it
-```
-
-> **Rule:** If ANY test file is marked `[ ]` (not written), go back to Step 2.7 and write it. Do NOT proceed. The review phase will cross-reference this report against the actual files.
-
-### Step 2.8: Build Validation (MANDATORY)
-
-> **You MUST validate that the code compiles, passes lint, and passes tests before finishing.**
-
-Run the project's build validation commands. **You MUST discover the correct commands** for this specific project — do NOT assume any default targets.
-
-**Command discovery order** (stop at the first source that provides clear targets):
-
-1. **`.ai-rules/VALIDATION.md`** — Located in the target project's own repo. Contains validation commands persisted from past experience with this project. This is the highest-priority source because it reflects confirmed, project-specific commands.
-2. **Plugin repo project knowledge** — Check `projects/<project-name>/VALIDATION.md` in this plugin repository for validation commands previously discovered and persisted for this specific project. This directory is shared across all skills.
-3. **`AGENTS.md`** — The primary source of project conventions and agent instructions.
-4. **`Makefile` / `package.json` / `Cargo.toml` / `pyproject.toml`** — Read available targets and scripts.
-5. **`CONTRIBUTING.md`** — May document the expected validation workflow.
-
-Look up the exact targets for formatting, vetting/type-checking, linting, testing, and building. Different projects use different target names (e.g., one project may use `make fmt-code` instead of `make fmt`, or `make go-lint` instead of `make lint`). **Never assume target names — always look them up.**
-
-> **Example of what NOT to do:** Do not run `make fmt vet lint test` as a default. A project might require `make fmt-code`, `go vet ./...`, `make lint`, and a specific test matrix. Discover the actual commands.
-
-**Rules for Build Validation:**
-
-1. **Fix ONLY issues in your own code.** Other coding agents may be working in parallel on other features. Do not modify files you didn't create or change.
-2. **If lint fails**, fix the lint issues in your files only.
-3. **If tests fail**, investigate whether the failure is in your new tests or existing tests:
-   - Your new tests failing → Fix your code or tests.
-   - Existing tests failing due to your changes → Fix your changes.
-   - Existing tests failing independently → Note in your summary, do not fix.
-4. **If build fails**, fix compilation/build errors in your files only.
-5. **Iterate** — Run validation again after fixes. Repeat until clean.
-
-**Validation summary:** After running validation, report which commands were run, whether each passed or failed, and whether any commands were adapted from defaults:
-
-```text
-Validation Results:
-- Ran: <exact command 1>  →  ✅ PASS / ❌ FAIL
-- Ran: <exact command 2>  →  ✅ PASS / ❌ FAIL
-- ...
-
-Notes:
-- <any commands adapted from defaults, and why>
-- <any pre-existing failures unrelated to this change>
-```
-
-### Step 2.9: Verify Your Work — Mandatory Completion Report
-
-> **You MUST produce the completion report below before declaring your work done.** This is not a passive checklist — you must actively verify each item and provide evidence. The review phase will reject work that skips this report.
-
-Before finishing, perform a final verification and **produce a structured completion report**:
-
-#### 2.9.1: Code Quality Verification
-
-**Read back every file you modified.** Check for and report:
-
-- Syntax errors or missing imports → List any found and fixed
-- Debug code removed (`fmt.Println`, `console.log`, `print()`) → Confirm none remain
-- Hardcoded values that should be configurable → List any found and fixed
-- TODO/FIXME comments that should be resolved → List any remaining with justification
-- Consistent formatting → Confirm checked
-
-#### 2.9.2: Observability Verification
-
-**For each new code path, verify and report:**
-
-| Check | Status | Evidence |
-|-------|--------|----------|
-| Entry/exit log lines on all significant operations | ✅/❌ | List the functions with logging |
-| Correct log levels (not everything at INFO) | ✅/❌ | List log levels used and where |
-| Structured key-value fields, not string concatenation | ✅/❌ | Confirm pattern used |
-| No sensitive data logged (passwords, tokens, PII) | ✅/❌ | Confirm reviewed |
-| Metrics added for new operations *(if project uses metrics)* | ✅/❌/N/A | List metrics added or N/A |
-| Tracing spans on significant operations *(if project uses tracing)* | ✅/❌/N/A | List spans added or N/A |
-
-#### 2.9.3: Test Coverage Verification (CRITICAL — Cross-Reference with Step 2.3.1)
-
-**Go back to your Step 2.3.1 test commitment. For each committed test file, verify:**
-
-| Committed Test File | Status | Tests Written | Missing |
-|---------------------|--------|---------------|---------|
-| `path/to/test_file` | ✅/❌ | Count + types | List any gaps |
-
-**Then verify:**
-
-- [ ] Every new public function has at least one unit test → **List the functions and their test names**
-- [ ] Every error path is tested → **List the error paths tested**
-- [ ] Edge cases covered: nil/empty inputs, zero values, boundaries → **List the edge case tests**
-- [ ] E2E tests cover multi-layer flows → **List the E2E test scenarios** or explain why N/A
-- [ ] No flaky tests (no `time.Sleep`, no order-dependence) → Confirm checked
-
-> **If ANY row shows ❌ or any committed test is missing, go back and write it.** Do NOT proceed to Step 2.10.
-
-#### 2.9.4: Cross-File Consistency
-
-Check and report:
-
-- If you added a field to a struct/type, did you update all serialization, comparisons, and mappings?
-- If you added an API endpoint, is it documented?
-- If you modified an interface, did you update all implementations and mocks?
-
-#### 2.9.5: Run build validation — see Step 2.8 and Step 2.10
-
-### Step 2.10: Final Validation — Mock Generators, Linting, and Tests (MANDATORY)
-
-> **This is the FINAL step before review.** You MUST run mock generators, linters, and tests before declaring your coding work complete. Use the project's task runner — do not run tools directly.
-
-**Procedure:**
-
-1. **Discover the correct commands** using the same command discovery order from Step 2.8:
-   - Target project's `.ai-rules/VALIDATION.md`
-   - Plugin repo project knowledge: `projects/<project-name>/VALIDATION.md`
-   - `AGENTS.md`
-   - `Makefile` / `package.json` / `Cargo.toml` / `pyproject.toml`
-   - `CONTRIBUTING.md`
-
-   Find the exact targets for: mock generation (if applicable) → formatting → linting → unit tests → full build.
-
-2. **Run the commands in order:** Execute the discovered targets in this order: mock generation → formatting → linting → tests → build. Do NOT guess or assume target names — use exactly what the project specifies.
-
-3. **Fix any failures** in your code ONLY:
-   - If mock generation fails → update your interfaces or mock configuration
-   - If linting fails → fix lint issues in YOUR files only
-   - If tests fail → fix YOUR tests or YOUR code (not other agents' code)
-   - If build fails → fix compilation errors in YOUR files only
-
-4. **Re-run until clean.** Iterate the cycle until all commands pass without errors on YOUR code.
-
-> **CRITICAL RULES:**
->
-> - **Use the project's task runner** (typically `make`, but could be `npm run`, `cargo`, etc.). Do not run tools directly (e.g., `go test ./...`, `golangci-lint run`, `pytest`). The project's build system is the single source of truth for how to run these tools.
-> - **Discover commands — never assume.** Different projects use different target names. What works in one repo will fail in another.
-> - **Fix ONLY your own code.** Other coding agents may be working in parallel. Do not modify files outside your feature scope.
-
-### Step 2.11: Self-Improving Knowledge Persistence (MANDATORY)
-
-> **After every coding iteration, persist what you learned.** This creates a self-improving feedback loop so future tasks on the same project start with accumulated knowledge instead of rediscovering everything from scratch.
-
-You MUST persist learned knowledge into **two layers**. Both use the same three-file structure:
+Both layers use the same three-file structure:
 
 - **`CODING.md`** — Best practices learned during this task: patterns from PR review comments, CI investigation findings, coding conventions discovered, pitfalls to avoid.
 - **`VALIDATION.md`** — Exact validation and build commands that mirror CI. Include formatting, vetting/type-checking, linting, testing, and building commands — the goal is to run the same validations CI runs locally, so issues are caught before pushing.
@@ -664,7 +454,7 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 - Architecture patterns specific to this project (e.g., "all new handlers must implement the Middleware interface").
 - CI investigation findings (e.g., "npm audit in web-lint can cause flaky failures due to new CVEs").
 - Common pitfalls (e.g., "the vendor directory is NOT tracked in git — do not commit vendor/ files").
-- Any corrections or preferences expressed by reviewers.
+- Reviewer preferences with their scope and rationale when the project adopted them.
 
 **In `REVIEWING.md`:**
 
@@ -678,7 +468,7 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 1. **Append, don't replace.** If `CODING.md`, `VALIDATION.md`, or `REVIEWING.md` already exists, read it first and append new knowledge. Do not overwrite previously learned content.
 2. **Deduplicate.** If the new knowledge is already captured, skip it.
 3. **Create directories** if they don't exist (`.ai-rules/` in the target project, `projects/<project-name>/` in this plugin repo).
-4. **Persist after validation passes.** Write the knowledge files after Step 2.10 validation succeeds, so the persisted commands are known-good.
+4. **Verify before recording.** Record which commands passed on this revision and identify CI-only checks separately.
 5. **Include a timestamp header** for each entry so it's clear when the knowledge was captured.
 
 ---
@@ -689,139 +479,19 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 
 **Goal:** Thoroughly review the code changes from Phase 2 and either approve them or request specific changes.
 
-### Step 3.0: Read Project Guidelines
+Use the [shared review engine](../review-engine/SKILL.md) for reviewer selection, independent perspectives, aggregation and the verdict. Supply the request, approved plan, current base and change set, applicable project guidance, validation results and prior findings. The review should check whether the evidence covers the acceptance criteria through real callers.
 
-Before reviewing, read the project's conventions and previously learned knowledge:
+### Iteration Loop
 
-1. **Read `.ai-rules/`** — If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). Use `REVIEWING.md` to understand what reviewers typically look for in this project.
-2. **Read `projects/<project-name>/`** — If this plugin repository has a `projects/<project-name>/` directory, read `REVIEWING.md` for review patterns from past sessions.
-3. **Read `AGENTS.md`** and other project convention files to ensure you review against the project's actual standards, not just generic best practices.
-
-### Step 3.1: Spawn Multi-Agent Review
-
-**You MUST spawn multiple specialized code review sub-agents** to review the changes in parallel. Do not perform all reviews in a single pass — parallel sub-agent review provides broader coverage and catches more issues.
-
-Use the reusable review workflow in [../review-engine/SKILL.md](../review-engine/SKILL.md) and the perspective criteria in [../review-engine/review-perspectives.md](../review-engine/review-perspectives.md).
-
-When running the review as part of `develop-feature`, pass the following context into the review:
-
-- The original request
-- The saved plan from `docs/plans/{feature-name}-plan.md`
-- The full diff for the current iteration
-- Prior review findings if this is iteration > 1
-
-### Step 3.2: Review Verification Checklist
-
-The review MUST verify ALL of the following:
-
-#### Functional Correctness
-
-- [ ] The changes solve the user's request
-- [ ] The implementation follows the saved plan or clearly improves upon it
-- [ ] Previous review findings were fully addressed (if iterating)
-- [ ] Every finding includes a concrete code fix
-
-#### Observability
-
-- [ ] Structured logging at appropriate levels on all new code paths
-- [ ] No sensitive data in log messages
-- [ ] Metrics added for new operations (counters, histograms) *(if project uses metrics)*
-- [ ] Tracing spans on significant operations with proper error recording *(if project uses tracing)*
-- [ ] Context propagation maintained through the call chain *(if project uses tracing)*
-
-#### Testing (Cross-Reference with Step 2.3.1 Commitment)
-
-- [ ] **Pre-coding test commitment exists** (Step 2.3.1) — the coder declared test files before writing code
-- [ ] **Every committed test file was created** — cross-reference the Step 2.3.1 checklist against actual test files in the diff
-- [ ] **Test verification report exists** (Step 2.7.4) — the coder produced the test verification report
-- [ ] Unit tests exist for every new public function
-- [ ] Error paths are tested, not just happy paths
-- [ ] Edge cases covered (nil, empty, zero, boundary)
-- [ ] E2E/integration tests exist for multi-layer changes
-- [ ] Mocks properly simulate external dependencies
-- [ ] No flaky test patterns (`time.Sleep`, shared state, ordering)
-
-> **If the coder did not produce a test commitment (Step 2.3.1) or a test verification report (Step 2.7.4), or if any committed test file is missing from the diff, this is an automatic CHANGES_REQUESTED.** The coder must go back and write the missing tests.
-
-#### Completion Report
-
-- [ ] **Mandatory completion report exists** (Step 2.9) — the coder produced the structured completion report with observability verification, test coverage verification, and cross-file consistency checks
-- [ ] The completion report shows evidence, not just checkmarks
-
-#### Build & Quality
-
-- [ ] Build validation (lint, test, build) passes cleanly
-- [ ] No debug artifacts left in code
-- [ ] Documentation added for new public APIs/functions
-
----
-
-## Iteration Loop
-
-If the review verdict is `CHANGES_REQUESTED`:
-
-1. **Collect ALL findings** from the review. List every issue with its severity.
-2. **Validate each finding.** For each issue, determine if it's a valid concern or a false positive. If false positive, note why — but err on the side of fixing.
-3. **Go back to Phase 2: CODING** with the validated review findings as input.
-4. **Fix ALL valid issues** — critical, high, medium, AND low severity. Not just the critical ones. Every finding the reviewer raised (that isn't a clear false positive) must be addressed.
-5. **Re-run the full test suite** via `make` commands (the same targets from Step 2.10). After fixing review issues, you MUST re-run tests — fixes can introduce regressions.
-6. **Re-run linting** via `make` commands. Confirm all lint checks pass.
-7. **Verify all fixes** — re-read each file you changed and confirm the review finding is addressed.
-8. **Proceed to Phase 3: REVIEW** again.
-9. Repeat until the review verdict is `APPROVED`.
-
-Maximum iterations: **3**. If still not approved after 3 iterations, present all remaining findings to the user and ask for guidance.
-
-> **Rule:** Do NOT approve with known issues. If reviewers found real problems, fix them. The iteration loop exists for a reason.
-> **Rule:** After fixing review issues, you MUST re-run tests. Fixes can introduce regressions. Never skip this step.
+For `CHANGES_REQUESTED`, fix the verified blocking findings and unmet acceptance criteria. Handle in-scope suggestions as appropriate and explain disagreements or deferrals with current code or tests. Run the checks affected by the edits and send the updated diff through review. If blockers remain after three iterations, report them to the user with the remaining decision or evidence needed.
 
 ---
 
 ## Phase 4: FINAL VALIDATION
 
-**Role:** You are a validation agent. You confirm the feature is complete and all quality gates pass.
+After approval, check the validation results against the final revision. Run outstanding project-required checks, including the full suite when required. Rerun checks invalidated by implementation, generated output, dependency or base changes. Reuse passing results for unchanged inputs.
 
-**Goal:** Run the full test and validation suite one final time after the review has approved the changes. This catches any regressions introduced during the review-fix cycle.
-
-> **This phase runs AFTER the review verdict is `APPROVED`.** It is the last gate before the feature is declared complete.
-
-### Step 4.1: Run Full Test Suite
-
-Run the project's complete test suite. **You MUST discover the correct commands** using the same command discovery order from Step 2.8 (target project's `.ai-rules/VALIDATION.md` → plugin repo's `projects/<project-name>/VALIDATION.md` → `AGENTS.md` → `Makefile` / build scripts → `CONTRIBUTING.md`). Do NOT hardcode or guess targets.
-
-1. **Run unit tests** — Execute the project's unit test target. All tests must pass.
-2. **Run E2E / integration tests** — If the project has a separate E2E test target, run it. All tests must pass.
-3. **Run linting** — Execute the project's lint target. No new lint errors.
-4. **Run build** — Execute the project's build target. Build must succeed.
-
-> **If any step fails:** Go back to Phase 2 (Coding) to fix the issue, then re-run the review cycle. Do NOT declare the feature complete with failing tests.
-
-### Step 4.2: Final Validation Report
-
-Produce the following report:
-
-```text
-Final Validation Report
-=======================
-Unit Tests:     ✅ PASS / ❌ FAIL (command: <make target used>)
-E2E Tests:      ✅ PASS / ❌ FAIL / N/A (command: <make target used>)
-Linting:        ✅ PASS / ❌ FAIL (command: <make target used>)
-Build:          ✅ PASS / ❌ FAIL (command: <make target used>)
-
-Feature:        <feature name>
-Files Changed:  <count>
-Tests Added:    <count>
-Status:         COMPLETE ✅ / BLOCKED ❌
-```
-
-### Step 4.3: Declare Complete
-
-Only if ALL validation steps pass:
-
-- Present the Final Validation Report to the user.
-- Declare the feature complete.
-
-> **Rule:** A feature is NOT complete until Phase 4 passes. Review approval alone is not sufficient — the final validation confirms everything still works after all iterations.
+Report the commands and their results, which behaviors were covered, and any required checks still blocked or pending in CI. Fix regressions within scope and return substantive fixes to review. Declare the change complete when the acceptance criteria and applicable checks are satisfied.
 
 ---
 
@@ -834,24 +504,12 @@ Only if ALL validation steps pass:
 - **Handle ALL error paths.** If something can fail, handle it.
 - **Don't over-engineer.** Solve the actual problem. No speculative generality.
 
-### Planning Standards
+### Planning and Coding Standards
 
-- **Thoroughness over speed.** A well-researched plan prevents wasted coding iterations.
-- **Be specific about file paths.** Vague references are not actionable.
-- **Always include observability and test plans.** These are not afterthoughts.
-
-### Coding Standards
-
-- **Match the codebase.** Your code must look like it belongs in this project.
-- **Follow `AGENTS.md` and project conventions** — they override everything in this skill.
-- **Add docstrings to every new function.**
-- **Logging is mandatory.** Metrics and tracing should be added only if the project already uses them.
-- **Comments explain WHY, not WHAT.** Only comment when the reason is non-obvious.
-- **Tests are mandatory.** Both unit tests and E2E tests for multi-layer features.
+- Use the approved plan, project rules and nearby implementation as the reference for scope and conventions.
+- Test the contract at the boundary where a regression would be observable. Document non-obvious behavior and use instrumentation where it aids diagnosis.
 
 ### Review Standards
 
-- **Focus on what matters.** Correctness, security, observability, testing, and code quality. Skip pure style nitpicks.
-- **If changes look good, say APPROVED.** Do not manufacture issues.
-- **Every review finding MUST have a fix.** Never flag without showing the resolution.
-- **ALL review findings must be addressed** before approval. No "we'll fix it later."
+- Apply the shared review engine's evidence, severity and verdict criteria.
+- Carry actionable findings into the next iteration and report residual risks accurately.
