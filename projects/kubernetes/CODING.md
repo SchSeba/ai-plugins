@@ -16,8 +16,8 @@ to the `kubernetes/kubernetes` repository.
 | `test/` | Integration and E2E tests |
 | `hack/` | Build, codegen, and verification scripts |
 | `api/` | OpenAPI and Swagger definitions |
-| `vendor/` | Vendored dependencies (managed by `hack/update-vendor.sh`) |
-| `third_party/` | Third-party tools (etcd, protoc — installed by `hack/install-*.sh`) |
+| `vendor/` | Vendored dependencies managed by the checkout's vendoring tooling |
+| `third_party/` | Third-party tools such as etcd and protoc |
 
 ---
 
@@ -28,11 +28,13 @@ Follow the current [contributor PR guide](https://www.kubernetes.dev/docs/guide/
 [API conventions](https://github.com/kubernetes/community/blob/main/contributors/devel/sig-architecture/api-conventions.md)
 and [OWNERS guide](https://www.kubernetes.dev/docs/guide/owners/).
 Route conceptual/API review separately from allocator/scheduler implementation
-review; inspect ownership coverage for every affected path. See
+review and inspect ownership coverage for every affected path. See
 [REVIEWING.md](REVIEWING.md) for trust/approvals, drafts/holds, release notes and
 review-friendly commit organization. Associated tests belong with their logical
-implementation; generated artifacts can be separated for review. Recheck this
-organization after rebasing and refresh the PR description.
+implementation. Generated artifacts can be separated for review. After a rebase,
+compare the final diff to the updated base. Check that upstream test cases and
+shared helpers still run through the intended callers. Recheck the commit
+grouping, remove incidental churn and refresh the PR description.
 
 The inventory below is checkout-dependent project knowledge. Discover actual
 script interfaces and matching patterns in the target checkout. Historical PR
@@ -60,6 +62,20 @@ preferences are heuristics, not universal rules.
    covers everything.
 5. Run matching verifiers and focused behavior/regression tests; use
    [VALIDATION.md](VALIDATION.md) for the conditional discovery inventory.
+
+### Evolving an existing API
+
+- Trace a field from a manifest and an older typed client through serialization,
+  defaulting, conversion and storage. A Go value can turn omission into a
+  serialized zero. Check whether those states remain distinguishable before
+  switching to a pointer, tightening validation or adding a union.
+- Check every served version and the published Go types when splitting a
+  struct used in multiple roles. Preserve existing JSON and protobuf field
+  identities. Establish which representations shipped before adding a migration
+  or reserving a number used only during review.
+- Derive status list/map bounds from the largest valid input a producer can
+  report. Specify keys, ordering and the meaning of absence where clients use
+  them. Check that generated schemas and handwritten producers agree.
 
 ### Field comments
 
@@ -97,26 +113,60 @@ Many generated files are prefixed with `zz_generated.`; others include protobuf,
 
 ## Feature Gates
 
-New features must be gated behind a feature gate:
+For a gated feature, use the KEP and neighboring versioned registrations to
+confirm its stage, default and dependencies.
 
 1. Define the gate in `pkg/features/kube_features.go` (or the appropriate
    staging module).
 2. Use `featureGate.Enabled(features.MyFeature)` in runtime code.
 3. Add `+featureGate=MyFeature` markers on gated API fields.
-4. Run `hack/update-featuregates.sh` and `hack/verify-featuregates.sh`.
+4. Discover the lifecycle inventory generator and verifier in the target
+   checkout and refresh the affected artifacts.
 
 Feature gate lifecycle: `Alpha → Beta → GA → Deprecated → Removed`.
+
+For gated API fields, trace create and update through strategy preparation and
+the REST validation path. Cover enabled and disabled writes, including an update
+of an object already using the field when the gate is disabled. Removing a
+gated union member can leave an invalid object. Follow the admission contract
+before choosing between rejection and defaulting. For a tightened constraint,
+test an unchanged stored value, a change within its validation boundary and a
+repair. Inspect list/map semantics to find that boundary.
+
+Follow retained fields into consumers. Determine which allocator or controller
+can implement the enabled behavior and how an older or disabled implementation
+handles inputs that depend on it. Keep unrelated paths close to the base.
+
+---
+
+## Shared state in schedulers and controllers
+
+- Give each charge an identity, a lifetime and a source of truth. Decide which
+  values follow live resource definitions and which belong to an allocation
+  result. Trace two users of one resource through allocation, reconstruction
+  from storage, release of either user and release of the last user.
+- Where cached and in-flight state overlap, reconcile by allocation identity.
+  A failed candidate must undo exactly its own reservations. Reuse the same
+  state-building helper for production and tests where they consume the same
+  inputs, so tests exercise that contract.
+- Before arithmetic on informer-derived data, check the actual copy semantics
+  of the type and its containers in the target revision. A value copy and a
+  shared pointer to that value have different ownership. Ensure reconciliation
+  leaves cached inputs available to other readers in their original state.
+- When a map traversal can encounter both a fatal input error and a candidate
+  that simply does not fit, preserve the contract's error precedence regardless
+  of iteration order. Exercise both outcomes together. Keep any new indexing
+  or scans proportional to demonstrated workload and feature use.
+
+The [shared-capacity case study](SHARED_CAPACITY_REVIEW.md) shows how these
+decisions changed during review of a DRA feature.
 
 ---
 
 ## Boilerplate
 
-Every source file must start with the Apache 2.0 license boilerplate.
-The expected header is in `hack/boilerplate/`. Verify with:
-
-```bash
-hack/verify-boilerplate.sh
-```
+Use the applicable Apache 2.0 template from `hack/boilerplate/` for new
+source files. Discover the matching check in the target checkout.
 
 ---
 
@@ -124,7 +174,7 @@ hack/verify-boilerplate.sh
 
 - Import aliases are enforced via `hack/.import-aliases`.
 - Import ordering: stdlib → external → k8s.io → internal.
-- Run `hack/verify-imports.sh` and `hack/verify-import-aliases.sh` to check.
+- Discover the checkout's import and alias checks when changing imports.
 
 ---
 
@@ -150,30 +200,35 @@ Contextual logging (`klog.FromContext`) is preferred in new code.
 - Tests live alongside the code: `foo_test.go` next to `foo.go`.
 - Use the `testing` package standard patterns.
 - Table-driven tests are strongly preferred.
+- Compare the complete relevant result, including an unexpectedly populated
+  field. Inspect the suite's existing gate permutations before adding cases.
 
 ### Integration tests
 
 - Live in `test/integration/`.
-- Require etcd (install via `hack/install-etcd.sh`).
+- Check how the target suite obtains etcd.
 - Follow existing integration harness and API-server setup patterns in the affected suite.
+- Isolate the limiting resource and assert the observable transition. For
+  example, a scheduler test can keep another device free and check that a pod
+  has no node assignment while the shared budget is exhausted, then verify it
+  binds after release.
 
 ### E2E tests
 
 - Live in `test/e2e/` (and `test/e2e_dra/`, `test/e2e_node/`, etc.).
 - Use the Ginkgo + Gomega framework.
 - Follow the `framework.NewDefaultFramework()` pattern.
-- E2E test ownership labels are enforced by `hack/verify-e2e-test-ownership.sh`.
+- Check the suite's ownership labels with the repository's current verifier.
 
 ---
 
 ## Common Pitfalls
 
-1. **Forgetting to run codegen** — Any change to API types requires
-   `hack/update-codegen.sh`. The `verify-codegen.sh` check will catch this in CI.
-2. **Stale OpenAPI spec** — After API changes, also run
-   `hack/update-openapi-spec.sh` or the verifier will fail.
-3. **Missing boilerplate** — New files without the license header fail
-   `verify-boilerplate.sh`.
+1. **Stale generated code** — Discover the generators and matching verifiers
+   for the changed types in the target checkout.
+2. **Stale OpenAPI spec** — Check whether the change affects schemas or
+   descriptions and refresh the published artifacts.
+3. **Missing boilerplate** — Match the expected license header for the file type.
 4. **Editing generated files** — Files prefixed with `zz_generated.` are
    auto-generated. Edit the source types and re-run codegen instead.
 5. **Verifier prerequisites** — Inspect current scripts for clean-tree and

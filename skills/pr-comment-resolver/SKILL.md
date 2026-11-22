@@ -24,7 +24,9 @@ Parse `owner`, `repo`, and `pullNumber` from the link.
 
 ## Reply safeguards
 
-Apply the reply workflow below to every PR, regardless of its owner, repository, or optional local folder. Keep a per-comment record containing the PR URL, original comment URL and ID, inline review-thread ID when available, quoted comment, handling status, and reply state. Start with the reply unset. Draft a concise reply only after the relevant implementation is complete, the final candidate PR change set shows a change that addresses that comment, and applicable validation is checked. Define that change set as the PR head compared with its base. If approved work is not yet committed, inspect the candidate tree against the same base; once committed, use the final head-to-base change set, including fixes amended, squashed, rebased, or incorporated into existing commits. A clean worktree, unchanged commit count, or no newly created commit does not disqualify a fix present in that change set. Record the relevant file and hunk or symbol, the PR base and head revisions when available, and the actual validation outcome with that comment's evidence.
+Check the target project's contributor rules in Step 0. Where reviewers require direct human responses, keep the entire reply workflow internal. Record findings, source locations, observed checks and outstanding questions for the contributor. Leave reply text unset even after a verified fix or user approval. The contributor writes and sends their own response. Kubernetes explicitly requires this. [Kubernetes PR guidance](https://www.kubernetes.dev/docs/guide/pull-requests/#ai-guidance)
+
+Keep a per-comment record containing the PR URL, original comment URL and ID, inline review-thread ID when available, quoted comment, handling status, and reply state. Start with the reply unset. Where the project permits assisted replies, draft a concise reply only after the relevant implementation is complete, the final candidate PR change set shows a change that addresses that comment, and applicable validation is checked. Define that change set as the PR head compared with its base. If approved work is not yet committed, inspect the candidate tree against the same base; once committed, use the final head-to-base change set, including fixes amended, squashed, rebased, or incorporated into existing commits. A clean worktree, unchanged commit count, or no newly created commit does not disqualify a fix present in that change set. Record the relevant file and hunk or symbol, the PR base and head revisions when available, and the actual validation outcome with that comment's evidence.
 
 A reply may describe only the concrete applied change supported by that comment's resulting-diff evidence. Do not use a pending-work promise, generic status update, unsupported fix or test claim, or change unrelated to the comment. If there is no checked applied resolution, tell the user clearly that there is no applied resolution to report; leave reply text unset and unavailable for publication.
 
@@ -153,7 +155,11 @@ After the history pass, when multiple current requests target the **same code pa
 
 #### Disagreement handling
 
-Fix only comments you agree with. If you disagree or are unsure, explain that clearly before moving on.
+Read later replies for changes to the reviewer's position. A question may identify a real concern while the proposed fix is wrong for the current code. Trace the premise and check any suggested patch, deriving test expectations from the inputs and contract. Check an author's claim of completion against the published PR head, including the named commit if placement matters. Identify any fix still present only in the local candidate.
+
+Explain any disagreement or uncertainty to the user. If the existing behavior is intentional, the reviewer withdrew the request, or the agreed change belongs in a linked follow-up, record that outcome and its evidence. Keep a separate request active if it still applies.
+
+If the reviewer explicitly asks the contributor to verify cases personally, identify the cases and what the contributor needs to check. Carry the personal check into the summary as outstanding until the contributor confirms it. Attribute that confirmation to them. An agent's inspection or passing test run cannot fulfill a request for the contributor's own judgment.
 
 ### Step 2b — Summarize skipped and excluded comments
 
@@ -178,8 +184,8 @@ Show the user a numbered list of the current requests so they see the full scope
 **If no actionable comments remain**, say so clearly:
 
 ```text
-No unresolved actionable review comments found on this PR.
-All comments are either resolved, praise/acknowledgement, or superseded.
+No code changes remain to propose.
+<Summarize the actual dispositions and any outstanding work for the contributor.>
 ```
 
 Do not imply there may be more comments or ask the user to double-check unless you used an exported document (Source 3), in which case add:
@@ -285,7 +291,7 @@ After an approved implementation is complete, and again after any later code edi
 
 1. Inspect the current resulting diff against the original comment. Record per comment the concrete file and relevant hunk or symbol that addresses the concern. A shared change may address several comments only when the evidence and association are recorded separately for each one.
 2. Record the actual validation outcome for that implementation, including exact checks and results. Applicable checks must pass. If no automated check applies, record that fact and the manual diff checks performed. Keep unrelated failures visible and accurately described.
-3. Only now draft a short, factual explanation of the concrete behavior changed. Every claim must match both the original concern and its recorded diff evidence. Mention tests or other checks only when their recorded result supports the claim. Do not use a generic acknowledgement, a pending or future-work promise, a claim that the concern was fixed without matching diff evidence, or a claim about unrelated changes.
+3. If the project permits assisted replies, only now draft a short, factual explanation of the concrete behavior changed. Every claim must match both the original concern and its recorded diff evidence. Mention tests or other checks only when their recorded result supports the claim. Do not use a generic acknowledgement, a pending or future-work promise, a claim that the concern was fixed without matching diff evidence, or a claim about unrelated changes.
 4. If the request was assessed as invalid or still needs context, the user declined or skipped the change, implementation is incomplete, the change was reverted, no related change appears in the current diff, an applicable check failed or is blocked, or the focused behavior evidence does not support the expected behavior, keep reply text unset and mark the record ineligible. Tell the user clearly: **No applied resolution to report** — [actual reason]. Do not propose a reply or publish a status message.
 
 Any later edit that changes the relevant diff or validation state invalidates that comment's evidence and draft. After every rebase, re-evaluate the evidence against the new final head-to-base change set. If the rebase changes relevant content or validation state, invalidate the affected evidence and draft, recheck applicable validation, and draft again only after the new evidence qualifies. A rebase that only changes commit arrangement while leaving the relevant change and validation evidence intact does not require an uncommitted worktree diff or a new commit. If an already presented reply is affected, its approval is invalid; changes after push confirmation also require completing the review again and obtaining fresh push confirmation for the latest reviewed PR head.
@@ -299,7 +305,7 @@ After all comments are processed, show:
 - Each request's history-informed validity disposition and reason, including relevant earlier comment identities, statuses, and rationale
 - Stated expected behavior and focused behavior-check results alongside actual project validation outcomes and remaining errors, including unrelated failures
 - Each eligible comment's exact reply draft, handling status, original target identity, and recorded diff evidence
-- For each ineligible comment, state **No applied resolution to report** with the actual reason; keep its reply unset
+- For a verified fix requiring a human response, report the fix and checks internally and leave the reply unset. For a comment without a verified fix, state **No applied resolution to report** with the actual reason.
 
 Keep every eligible reply unpublished until Step 8.
 
@@ -375,7 +381,7 @@ This captures knowledge shared across ALL skills in this plugin repo. Any skill 
 
 ### Step 8 — Approve and publish replies
 
-Run this step after the Step 6 final summary and all Step 7 knowledge persistence are complete. If no comment has an eligible reply, report that there is no applied resolution to report for ineligible comments and end without a push-confirmation request or comment write. Never ask the user to approve or publish an ineligible status message.
+Run this step after the Step 6 final summary and all Step 7 knowledge persistence are complete. If the project requires human responses or no comment has an eligible reply, end with the internal summary and skip the push-confirmation and publication steps. Never ask the user to approve or publish an ineligible status message.
 
 #### Push confirmation gate
 
@@ -383,7 +389,7 @@ After the full review and knowledge persistence are complete, and only when at l
 
 #### Separate approval for each reply
 
-After the push gate is met:
+After push confirmation, check the published PR head and base against the reviewed revisions. If they differ, refresh the review and validation evidence before resuming.
 
 1. Recheck that the current diff and validation evidence still support the next eligible reply. Present only that comment's original quote and URL/ID/thread identity, handling status, and exact current reply. Ask whether the user approves that exact reply for that exact comment. Wait for the answer before writing or presenting another reply. A general or blanket approval does not approve any individual reply.
 2. Never present an ineligible comment for reply approval. If its resolution evidence is absent or stale, leave the reply unset, report **No applied resolution to report** with the actual reason, and do not publish.

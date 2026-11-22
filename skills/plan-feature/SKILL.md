@@ -7,7 +7,7 @@ description: Planning phase for feature development. Reads the codebase, gathers
 
 A standalone planning workflow that produces a detailed, actionable implementation plan for a feature, bug fix, or change specification.
 
-This skill reads the codebase, gathers context, runs parallel subagent investigations, and outputs a structured plan document. The plan is designed to be self-contained and precise enough for a coding phase (e.g., the `develop-feature` skill) to execute without re-analyzing the codebase.
+This skill reads the codebase, gathers context, runs parallel subagent investigations, and outputs a structured plan document. The plan supplies the scope, decisions and code references needed for implementation.
 
 ## Usage
 
@@ -38,13 +38,13 @@ Execute these steps in order. The output is a saved plan document and a user-fac
 
 **Role:** You are a planning agent. You have READ-ONLY access. You do not modify any code in this phase.
 
-**Goal:** Produce a detailed, actionable implementation plan that is self-contained and precise enough for the coding phase to execute without re-analyzing the codebase.
+**Goal:** Produce a self-contained implementation plan grounded in the current code and the user’s acceptance criteria.
 
 ### Step 1.0: Read Project Guidelines (MANDATORY -- Do This FIRST)
 
 Before any analysis, read the project's best-practices, contribution guidelines, and any previously learned knowledge:
 
-1. **Read `.ai-rules/`** -- If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). These contain previously learned knowledge about this project -- coding conventions, validation commands, and review patterns discovered during past sessions. **This is the highest-priority source** because it reflects confirmed, project-specific knowledge.
+1. **Read `.ai-rules/`** -- If the target project has an `.ai-rules/` directory, read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). Treat these prior lessons as leads and verify them against the current project instructions, code and build configuration.
 2. **Read `projects/<project-name>/`** -- If this plugin repository has a `projects/<project-name>/` directory (where `<project-name>` matches the target project's repo name), read all files in it (`CODING.md`, `VALIDATION.md`, `REVIEWING.md`). These contain knowledge shared across all skills in this plugin, discovered during past sessions with this project.
 3. **Read `AGENTS.md`** -- This is the primary source of project conventions, architecture rules, and agent-specific instructions. If this file exists, its rules override any defaults in this skill.
 4. **Read `CONTRIBUTING.md`** -- Contribution workflow, PR format, commit conventions.
@@ -52,7 +52,7 @@ Before any analysis, read the project's best-practices, contribution guidelines,
 6. **Read `Makefile` / build scripts** -- Understand the build, test, and lint commands available.
 7. **Read linting configs** -- `.golangci.yml`, `.eslintrc`, `pyproject.toml`, `rustfmt.toml`, etc.
 
-> **Rule:** If any of these files exist and contain instructions, you MUST follow them. Project-specific conventions always take precedence over the generic guidelines in this skill.
+Follow the user's instructions and the project's current requirements. Apply previously recorded lessons and generic skill guidance where consistent with both.
 
 ### Step 1.1: Gather Context
 
@@ -85,7 +85,7 @@ Before any analysis, read the project's best-practices, contribution guidelines,
 
 ### Step 1.2: Codebase Scan
 
-> **CodeGraph-first rule:** If the CodeGraph MCP server is configured and available, prefer `codegraph_explore` for all codebase exploration -- it returns the relevant symbols' verbatim source, call paths, and blast radius in a single tool call, replacing slow grep/find/read loops. If CodeGraph is available but the project has no `.codegraph/` directory, run `codegraph init` in the project root first to build the initial graph. If CodeGraph is not available, **inform the user** and fall back to manual exploration below.
+> **CodeGraph-first rule:** If the CodeGraph MCP server is configured and available, prefer `codegraph_explore` for all codebase exploration -- it returns the relevant symbols' verbatim source, call paths, and blast radius in a single tool call, replacing slow grep/find/read loops. If the project has no usable index, follow the configured provider's setup instructions to initialize it. If CodeGraph is not available, **inform the user** and fall back to manual exploration below.
 
 1. **Explore the project structure.**
    - If CodeGraph is available, use `codegraph_explore` to survey the project structure, entry points, and key modules.
@@ -235,11 +235,11 @@ Numbered, concrete steps. Each step should:
 
 #### Observability Plan
 
-> **Logging is MANDATORY for every feature.** Metrics and tracing are only required if the project already has metrics/tracing infrastructure. If the project does not use metrics or tracing, skip those sub-sections.
+Identify any operational question the change introduces. Reuse existing signals where they answer it. Plan additional logging, metrics or tracing where needed, following the project's existing infrastructure.
 
 ##### Logging Plan
 
-For each new code path, specify:
+For each event that needs a log, specify:
 
 - **Log line description**: What event is being logged
 - **Log level**: DEBUG / INFO / WARN / ERROR (see level guidelines in Phase 2)
@@ -250,7 +250,7 @@ For each new code path, specify:
 
 > **Skip this section if the project has no existing metrics infrastructure.** Check for prometheus, otel-metrics, or similar in the codebase first.
 
-For each new operation or resource, specify:
+For each proposed metric, specify:
 
 - **Metric name**: Following project naming conventions (e.g., `myservice_operation_total`, `myservice_operation_duration_seconds`)
 - **Metric type**: Counter / Gauge / Histogram
@@ -261,7 +261,7 @@ For each new operation or resource, specify:
 
 > **Skip this section if the project has no existing tracing infrastructure.** Check for Jaeger, OpenTelemetry, or similar in the codebase first.
 
-For each significant operation, specify:
+For each proposed span, specify:
 
 - **Span name**: Following OpenTelemetry naming conventions (e.g., `ServiceName.OperationName`)
 - **Span attributes**: What key-value pairs to attach (e.g., `resource.id`, `operation.type`)
@@ -270,16 +270,14 @@ For each significant operation, specify:
 
 #### Unit Test Plan
 
-For each new or modified function, list specific test cases:
+Identify the changed contract and the existing or proposed cases that demonstrate it:
 
 - **Test name**: Descriptive name following project conventions
 - **Scenario**: What is being tested
 - **Setup**: What data/mocks are needed
 - **Assertion**: What the expected outcome is
 
-Include edge cases: nil/empty inputs, zero values, boundary conditions, error paths, concurrent access.
-
-> **Coverage rule:** Every new public function MUST have at least one test. Every error path MUST be tested. Aim for meaningful coverage of all new code paths.
+Include relevant failure cases, boundaries and existing behavior that must remain compatible. Choose inputs and independent expected results that expose a regression.
 
 #### E2E / Integration Test Plan
 
@@ -292,7 +290,7 @@ For cross-component or user-facing changes:
 - **Assertions**: What must be true across component boundaries
 - **Teardown**: How test state is cleaned up
 
-> **Rule:** If the feature touches 2+ layers (handler -> service -> repository), an E2E or integration test is MANDATORY, not optional.
+Choose integration or E2E coverage when the real interaction is necessary to establish the contract. Identify what the test proves beyond existing lower-level coverage.
 
 #### Acceptance Criteria
 
@@ -334,8 +332,8 @@ docs/plans/{feature-name}-plan.md
   - Action (Create / Modify / Delete)
   - Detailed description of what changes (functions, types, imports, etc.)
   - Dependencies on other files
-  - Logging, metrics, and tracing to add in this file
-  - Tests that will validate this file's changes
+  - Any changes to logging, metrics or tracing needed for this behavior
+  - Existing or proposed tests that verify the changed contract
 
 **Output:** Present the full plan (Part 1 + Part 2) to the user.
 
@@ -364,5 +362,5 @@ After presenting the plan:
 
 - **Thoroughness over speed.** A well-researched plan prevents wasted coding iterations.
 - **Be specific about file paths.** Vague references are not actionable.
-- **Always include observability and test plans.** These are not afterthoughts.
-- **The plan must be self-contained.** A coding agent should be able to execute the plan without re-analyzing the codebase.
+- Identify validation and observability needs while planning. Record when existing coverage or signals suffice.
+- Include the evidence behind decisions that depend on a particular revision. Recheck affected assumptions when the base or requirements change.
