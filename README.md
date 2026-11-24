@@ -20,6 +20,7 @@ Built on the open [Agent Skills](https://agentskills.io) standard — works with
   - [generate-tests](#generate-tests)
   - [jira-cli](#jira-cli)
   - [kubernetes-pre-push](#kubernetes-pre-push)
+  - [learn-from-comments](#learn-from-comments)
   - [pr-comment-resolver](#pr-comment-resolver)
   - [retrospective](#retrospective)
   - [review](#review)
@@ -181,6 +182,7 @@ cp -r commands/* ~/.cursor/commands/
 | [generate-tests](#generate-tests) | Generate comprehensive test suites for specified code, discovering project testing conventions automatically | `/generate-tests` |
 | [jira-cli](#jira-cli) | Query Jira tasks and epics | `/jira-cli` |
 | [kubernetes-pre-push](#kubernetes-pre-push) | Structured pre-push verification checklist for Kubernetes contributions | `/kubernetes-pre-push` |
+| [learn-from-comments](#learn-from-comments) | Learn project guidance from completed Local Review threads | [`/learn-from-comments`](commands/learn-from-comments.md), [`/publish-review-learnings`](commands/publish-review-learnings.md) |
 | [pr-comment-resolver](#pr-comment-resolver) | Resolve PR review comments one-by-one with user approval | `/pr-comment-resolver` |
 | [retrospective](#retrospective) | Learn durable standards from merged PR feedback | `/retrospective` |
 | [review](#review) | Structured four-perspective PR review (Developer, QE, Security, DevOps) — routes through `code-review review-pr` | `/review` |
@@ -375,6 +377,21 @@ Uses the Kubernetes project knowledge in [`projects/kubernetes/`](projects/kuber
 
 ---
 
+### learn-from-comments
+
+Uses completed Local Review threads and the final reviewed changes to derive reusable project guidance. Run it from the reviewed worktree, or pass that worktree explicitly. Your agent needs the Local Review MCP server with the `list_review_history` tool.
+
+```text
+/learn-from-comments
+/publish-review-learnings
+```
+
+The first command reports the lessons. The second clones ai-plugins into a temporary directory and opens a PR when the review supports a new, verified change to project guidance. Both commands apply the [retrospective](#retrospective) workflow. Run them before clearing the Local Review history.
+
+[Skill](skills/learn-from-comments/SKILL.md)
+
+---
+
 ### pr-comment-resolver
 
 Interactively resolves PR review comments one at a time. Where project policy requires human responses, including Kubernetes, provide internal analysis and leave replies unset; the drafting and publication workflow below applies only where assisted responses are permitted. The agent paginates inline and general PR comments through all available pages before assessing requests; if complete history cannot be retrieved, it reports the missing pages or endpoint and asks for context before proposing a fix. Before filtering older discussion, it checks relevant comments—including resolved or outdated comments where available—retains their status and rationale, and reassesses each current request against the present code. It records a reasoned valid, invalid, or needs-context disposition and expected behavior before proposing a fix; missing or ambiguous evidence is surfaced for context rather than assumed. For API-field renames, it traces dependent functions, helpers, callers, tests, fixtures, and documentation, records coordinated updates and reasons for intentional old-name references, then audits affected references after implementation. After an approved change, it runs applicable project checks and a focused behavior check against that expectation before claiming resolution. For each comment, the agent records the original target and handling status while leaving the reply unset. Only after a relevant change is fully applied, present in the final PR head-to-base change set, and supported by validation and focused behavior evidence does it draft a concise, factual explanation of that change. Before any rebase, it keeps corrections reviewable and uncommitted, shows the complete candidate diff and maps every correction to an existing PR commit by SHA and subject, then waits for separate explicit approval. It never creates fixup commits, including temporary autosquash fixups; ambiguous placement requires clarification. Decline/skip preserves edits and history, silence means wait, and any changed placement map invalidates approval. After approved integration into the mapped commits, evidence and affected validation are refreshed. If no checked resolution exists, it tells you that there is no applied resolution to report and leaves the reply unpublished and unset. Eligible replies remain unpublished until the full review and knowledge persistence are complete, you confirm the latest reviewed PR head was pushed, and you approve each exact reply individually. The [acceptance scenarios](skills/pr-comment-resolver/reply-workflow-scenarios.md) include a repeatable local documentation check: `python3 skills/pr-comment-resolver/check_reply_workflow.py`.
@@ -518,7 +535,9 @@ ai-plugins/
 │   ├── generate-tests.md
 │   ├── jira-cli.md
 │   ├── kubernetes-pre-push.md
+│   ├── learn-from-comments.md
 │   ├── pr-comment-resolver.md
+│   ├── publish-review-learnings.md
 │   ├── retrospective.md
 │   ├── review.md
 │   ├── review-engine.md
@@ -536,6 +555,8 @@ ai-plugins/
     │   ├── SKILL.md
     │   └── scripts/
     ├── kubernetes-pre-push/
+    │   └── SKILL.md
+    ├── learn-from-comments/
     │   └── SKILL.md
     ├── pr-comment-resolver/
     │   ├── SKILL.md
